@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Z2</title>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e293b;
+            --bg-light: #f8fafc;
+            --text-main: #334155;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 280px;
+            background-color: var(--secondary-color);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        .sidebar-header { padding: 2rem; text-align: center; border-bottom: 1px solid #334155; }
+        .sidebar-nav { flex-grow: 1; padding: 1rem 0; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            color: #94a3b8;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+        .nav-item i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-item:hover, .nav-item.active {
+            background-color: #334155;
+            color: var(--white);
+            border-left-color: var(--primary-color);
+        }
+        .main-container { flex-grow: 1; padding: 2rem; overflow-y: auto; }
+        header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .content-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            min-height: 400px;
+        }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .exam-form { display: flex; flex-direction: column; gap: 1.5rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group label { font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+        .question-builder { border: 1px dashed #cbd5e1; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; background: #fdfdfd; }
+        .btn-action { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-secondary { background: #64748b; color: white; margin-top: 1rem; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .exams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .exam-card { background: #f1f5f9; border-radius: 10px; padding: 1.25rem; border: 1px solid #e2e8f0; transition: var(--transition); }
+        .exam-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .exam-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+        .exam-card-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .exam-card h4 { margin: 0; color: var(--secondary-color); }
+        .exam-card p { font-size: 0.85rem; color: #64748b; margin: 4px 0 12px 0; }
+        .card-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 1rem; }
+        .btn-small { padding: 0.5rem; font-size: 0.75rem; width: 100%; margin: 0 !important; }
+        .option-label { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: var(--transition); margin-bottom: 8px; }
+        .option-label:hover { background-color: #f1f5f9; }
+        .option-label input { cursor: pointer; }
+
+        /* Estilos para la tabla de usuarios */
+        .user-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        .user-table th, .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .user-table th {
+            background-color: #f8fafc;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .nav-item { padding: 1rem; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header"><h3>Control de Especialidades Z2, ADN</h3></div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-target="especialidades"><i class="fas fa-stethoscope"></i> Especialidades</a>
+            <a href="#" class="nav-item" data-target="examen"><i class="fas fa-file-medical"></i> Examen</a>
+            <a href="#" class="nav-item" data-target="historial"><i class="fas fa-history"></i> Historial</a>
+            <a href="certificados.html" class="nav-item" data-target="certificados"><i class="fas fa-certificate"></i> Certificados</a>
+            <a href="#" class="nav-item" data-target="Usuarios"><i class="fas fa-users"></i> Usuarios</a>
+            <a href="#" class="nav-item" id="logout-link"><i class="fas fa-sign-out-alt"></i> Salir</a>
+        </nav>
+    </aside>
+    <main class="main-container">
+        <header>
+            <h1 id="page-title">Especialidades</h1>
+            <div class="user-info"><span>Bienvenido, <b id="display-user-name">Usuario</b></span></div>
+        </header>
+        <section class="content-card">
+            <div id="especialidades" class="view-section active">
+                <div id="specialties-view">
+                    <h2>Especialidades Disponibles</h2>
+                    <p style="margin-bottom: 2rem;">Seleccione una especialidad para comenzar su evaluación.</p>
+                    <div id="specialties-list" class="exams-grid"></div>
+                </div>
+                <div id="exam-player" style="display: none;">
+                    <button class="btn-action btn-secondary btn-small" onclick="closeExamPlayer()" style="width: auto; margin-bottom: 1.5rem !important;"><i class="fas fa-arrow-left"></i> Volver a especialidades</button>
+                    <h2 id="player-title">Nombre del Examen</h2>
+                    <div id="player-questions" style="margin-top: 2rem;"></div>
+                    <button class="btn-action btn-primary" onclick="evaluateExam()" style="margin-top: 2rem; width: 100%;">Finalizar y Obtener Resultado</button>
+                </div>
+            </div>
+            <div id="examen" class="view-section">
+                <h2>Crear Nuevo Examen</h2>
+                <form id="create-exam-form" class="exam-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="spec-name">Nombre de la Especialidad</label>
+                            <input type="text" id="spec-name" placeholder="Ej: Cardiología" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="spec-logo">Logo de la Especialidad</label>
+                            <input type="file" id="spec-logo" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="spec-attempts">Número Máximo de Intentos</label><input type="number" id="spec-attempts" min="1" value="1" required></div>
+                    </div>
+                    <div id="questions-container"></div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" class="btn-action btn-secondary" onclick="addQuestion()"><i class="fas fa-plus"></i> Añadir Pregunta</button>
+                        <button type="submit" id="submit-btn" class="btn-action btn-primary" style="margin-top: 1rem;">Guardar Examen Completo</button>
+                        <button type="button" id="cancel-edit-btn" class="btn-action btn-danger" style="margin-top: 1rem; display: none;" onclick="resetForm()">Cancelar</button>
+                    </div>
+                </form>
+                <template id="question-template">
+                    <div class="question-builder" style="margin-bottom: 1rem;">
+                        <div class="form-group"><label>Pregunta</label><input type="text" class="question-text" required></div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                            <input type="text" placeholder="Opción A" required><input type="text" placeholder="Opción B" required>
+                            <input type="text" placeholder="Opción C" required><input type="text" placeholder="Opción D" required>
+                        </div>
+                        <div class="form-group"><label>Respuesta Correcta</label><select><option value="A">Opción A</option><option value="B">Opción B</option><option value="C">Opción C</option><option value="D">Opción D</option></select></div>
+                    </div>
+                </template>
+                <hr style="margin: 3rem 0 2rem; border: 0; border-top: 2px solid #f1f5f9;">
+                <h3>Exámenes Guardados</h3>
+                <div id="exams-list" class="exams-grid"></div>
+            </div>
+            <div id="historial" class="view-section">
+                <h2>Historial de Exámenes</h2>
+                <p style="margin-bottom: 1rem;">Aquí puedes ver tus resultados y descargar certificados si aprobaste con 80 puntos o más.</p>
+                <div id="historial-list-container"></div>
+            </div>
+            <div id="Usuarios" class="view-section">
+                <h2>Gestión de Usuarios</h2>
+                <p style="margin-bottom: 1rem;">Consulta la lista de personas registradas en el portal.</p>
+                <div id="users-list-container"></div>
+            </div>
+        </section>
+    </main>
+    <script>
+        const supabaseUrl = 'https://snznujqmoimycrfdtqgi.supabase.co';
+        const supabaseKey = 'sb_publishable_sBsXMDH8sD4eC8PANPyaYw_3mNggHi0';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Mostrar nombre del usuario logueado
+        const currentUser = JSON.parse(localStorage.getItem('z2_current_user'));
+        
+        // Redirigir si no hay sesión
+        if (!currentUser) window.location.href = 'index.html';
+
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        if (!isAdmin) {
+            document.querySelectorAll('[data-target="examen"], [data-target="Usuarios"], [data-target="certificados"]').forEach(el => el.style.display = 'none');
+        }
+
+        if (currentUser && currentUser.name) {
+            document.getElementById('display-user-name').innerText = currentUser.name;
+        }
+
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.view-section');
+        const pageTitle = document.getElementById('page-title');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', async (e) => {
+                const targetId = item.getAttribute('data-target');
+                if (!targetId) return;
+                e.preventDefault();
+                navItems.forEach(i => i.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                item.classList.add('active');
+                if(targetId === 'especialidades') renderSpecialties();
+                if(targetId === 'historial') await renderHistorial();
+                if(targetId === 'Usuarios') await renderUsers();
+                document.getElementById(targetId).classList.add('active');
+                pageTitle.innerText = item.innerText.trim();
+            });
+        });
+        function addQuestion() {
+            const container = document.getElementById('questions-container');
+            const template = document.getElementById('question-template');
+            const clone = template.content.cloneNode(true);
+            container.appendChild(clone);
+        }
+
+        let savedExams = []; // Variable global para los exámenes de la DB
+
+        async function renderExams() {
+            const list = document.getElementById('exams-list');
+            const { data, error } = await _supabase.from('exams').select('*').order('created_at', { ascending: false });
+            
+            if (data) {
+                savedExams = data;
+                list.innerHTML = '';
+                savedExams.forEach((exam, index) => {
+                const card = document.createElement('div');
+                card.className = 'exam-card';
+                const logoContent = exam.logo ? `<img src="${exam.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-stethoscope"></i>`;
+                card.innerHTML = `
+                    <div class="exam-card-header">
+                        <div class="exam-card-logo">${logoContent}</div>
+                        <div><h4>${exam.name}</h4><p>${exam.questions.length} Preguntas • Max ${exam.maxAttempts || 1} intentos</p></div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-action btn-secondary btn-small" onclick="viewExamDetails(${index})"><i class="fas fa-eye"></i></button>
+                        <button class="btn-action btn-warning btn-small" onclick="editExam(${index})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-action btn-danger btn-small" onclick="deleteExam(${index})"><i class="fas fa-trash"></i></button>
+                        <button class="btn-action ${exam.active ? 'btn-success' : 'btn-secondary'} btn-small" onclick="toggleExamStatus(${index})"><i class="fas fa-power-off"></i></button>
+                    </div>`;
+                list.appendChild(card);
+            });
+        }
+        let editingIndex = null;
+        let currentPlayingIndex = null;
+        function renderSpecialties() {
+            const list = document.getElementById('specialties-list');
+            const activeExams = savedExams.filter(e => e.active);
+            list.innerHTML = '';
+            activeExams.forEach((exam) => {
+                const originalIndex = savedExams.indexOf(exam);
+                const examId = exam.id || `exam_${originalIndex}`;
+                const attemptsTaken = userAttempts[examId] || 0;
+                const maxAttempts = exam.maxAttempts || 1;
+                const isBtnDisabled = attemptsTaken >= maxAttempts;
+                const card = document.createElement('div');
+                card.className = 'exam-card';
+                const logo = exam.logo ? `<img src="${exam.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-stethoscope"></i>`;
+                card.innerHTML = `
+                    <div class="exam-card-header">
+                        <div class="exam-card-logo">${logo}</div>
+                        <div><h4>${exam.name}</h4><p>${exam.questions.length} preguntas • Intentos: ${attemptsTaken}/${maxAttempts}</p></div>
+                    </div>
+                    <button class="btn-action ${isBtnDisabled ? 'btn-secondary' : 'btn-primary'} btn-small" onclick="${isBtnDisabled ? '' : `startExam(${originalIndex})`}" ${isBtnDisabled ? 'disabled' : ''}>${isBtnDisabled ? 'Intentos Agotados' : 'Tomar Examen'}</button>`;
+                list.appendChild(card);
+            });
+        }
+        function startExam(index) {
+            currentPlayingIndex = index;
+            const exam = savedExams[index];
+            document.getElementById('specialties-view').style.display = 'none';
+            document.getElementById('exam-player').style.display = 'block';
+            document.getElementById('player-title').innerText = exam.name;
+            const container = document.getElementById('player-questions');
+            container.innerHTML = exam.questions.map((q, i) => `
+                <div class="question-builder" style="border-style: solid; border-color: #e2e8f0; margin-bottom: 2rem;">
+                    <p><strong>${i + 1}. ${q.text}</strong></p>
+                    <div style="margin-top: 1rem;">
+                        ${q.options.map((opt, optIdx) => `<label class="option-label"><input type="radio" name="question${i}" value="${String.fromCharCode(65 + optIdx)}"> ${opt}</label>`).join('')}
+                    </div>
+                </div>`).join('');
+        }
+        async function evaluateExam() {
+            const exam = savedExams[currentPlayingIndex];
+            let correctAnswers = 0;
+            const totalQuestions = exam.questions.length;
+            exam.questions.forEach((q, i) => {
+                const selected = document.querySelector(`input[name="question${i}"]:checked`);
+                if (selected && selected.value === q.correct) correctAnswers++;
+            });
+            const finalScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+            
+            // Guardar resultado en Supabase
+            const { error } = await _supabase.from('exam_results').insert([{
+                user_id: currentUser.id,
+                exam_id: exam.id,
+                score: finalScore
+            }]);
+
+            if (error) console.error('Error al guardar resultado:', error);
+
+            alert(`Resultado: ${finalScore}/100 puntos (${correctAnswers} aciertos de ${totalQuestions} preguntas).`);
+            renderSpecialties();
+            closeExamPlayer();
+        }
+        function closeExamPlayer() {
+            document.getElementById('specialties-view').style.display = 'block';
+            document.getElementById('exam-player').style.display = 'none';
+        }
+
+        async function renderHistorial() {
+            const container = document.getElementById('historial-list-container');
+            
+            let query = _supabase.from('exam_results').select('*, exams(name)');
+            if (!isAdmin) {
+                query = query.eq('user_id', currentUser.id);
+            }
+            
+            const { data: results, error } = await query.order('date', { ascending: false });
+
+            if (!results || results.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">No has realizado ningún examen todavía.</p>';
+                return;
+            }
+
+            let html = `
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Especialidad</th>
+                            ${isAdmin ? '<th>Usuario</th>' : ''}
+                            <th>Fecha</th>
+                            <th>Puntaje</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach((res, index) => {
+                const isPassed = res.score >= 80;
+                
+                html += `
+                    <tr>
+                        <td>${res.exams.name}</td>
+                        ${isAdmin ? `<td><small>${res.user_id}</small></td>` : ''}
+                        <td>${res.date}</td>
+                        <td>${res.score}/100</td>
+                        <td style="color: ${isPassed ? '#10b981' : '#ef4444'}; font-weight: bold;">${isPassed ? 'Aprobado' : 'No Aprobado'}</td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                ${isPassed ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Certificado"><i class="fas fa-certificate"></i></button>` : ''}
+                                ${isAdmin ? `
+                                    <button class="btn-action btn-warning btn-small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-action btn-danger btn-small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>
+                                ` : (!isPassed ? '-' : '')}
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        window.deleteHistorialEntry = async function(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar este registro del historial?')) {
+                await _supabase.from('exam_results').delete().eq('id', id);
+                renderHistorial();
+            }
+        };
+
+        window.editHistorialEntry = async function(id, currentScore) {
+            const newScore = prompt('Modificar puntaje (0-100):', currentScore);
+            
+            if (newScore !== null && newScore !== "" && !isNaN(newScore)) {
+                const scoreInt = parseInt(newScore);
+                if (scoreInt >= 0 && scoreInt <= 100) {
+                    await _supabase.from('exam_results').update({ score: scoreInt }).eq('id', id);
+                    renderHistorial();
+                } else {
+                    alert('Por favor ingrese un valor entre 0 y 100.');
+                }
+            }
+        };
+
+        function generateCertFromHistorial(examName) {
+            localStorage.setItem('cert_auto_fill', JSON.stringify({
+                user: currentUser.name,
+                course: examName,
+                date: new Date().toISOString().split('T')[0]
+            }));
+            window.location.href = 'certificados.html';
+        }
+
+        async function renderUsers() {
+            const container = document.getElementById('users-list-container');
+            const { data: users, error } = await _supabase.from('users').select('*').order('name');
+            
+            if (!users || users.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">No hay usuarios registrados en el sistema.</p>';
+                return;
+            }
+
+            let html = `
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user"></i> Nombre</th>
+                            <th><i class="fas fa-envelope"></i> Correo Electrónico</th>
+                            <th><i class="fas fa-id-badge"></i> Rol</th>
+                            ${isAdmin ? '<th><i class="fas fa-cogs"></i> Acciones</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            users.forEach(user => {
+                let actionsHTML = '';
+                if (isAdmin) {
+                    if (user.email === currentUser.email) {
+                        actionsHTML = '<td>-</td>';
+                    } else {
+                        actionsHTML = `
+                            <td>
+                                <button class="btn-action ${user.blocked ? 'btn-success' : 'btn-warning'} btn-small" onclick="toggleBlockUser('${user.email}')" title="${user.blocked ? 'Desbloquear' : 'Bloquear'}">
+                                    <i class="fas ${user.blocked ? 'fa-unlock' : 'fa-user-slash'}"></i>
+                                </button>
+                                <button class="btn-action btn-danger btn-small" onclick="deleteUser('${user.email}')" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                    }
+                }
+
+                html += `
+                    <tr style="${user.blocked ? 'opacity: 0.6; background-color: #fff1f2;' : ''}">
+                        <td>${user.name} ${user.blocked ? '<span style="color:red; font-size: 0.7rem;">(BLOQUEADO)</span>' : ''}</td>
+                        <td>${user.email}</td>
+                        <td>${user.role === 'admin' ? 'Administrador' : 'Usuario'}</td>
+                        ${isAdmin ? actionsHTML : ''}
+                    </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        window.deleteUser = async function(email) {
+            if (confirm('¿Estás seguro de que deseas eliminar permanentemente a este usuario?')) {
+                await _supabase.from('users').delete().eq('email', email);
+                renderUsers();
+            }
+        };
+
+        window.toggleBlockUser = async function(email) {
+            const { data: user } = await _supabase.from('users').select('blocked').eq('email', email).single();
+            if (user) {
+                await _supabase.from('users').update({ blocked: !user.blocked }).eq('email', email);
+                renderUsers();
+            }
+        };
+
+        window.deleteExam = async function(index) {
+            if (confirm('¿Eliminar examen?')) {
+                const examId = savedExams[index].id;
+                await _supabase.from('exams').delete().eq('id', examId);
+                await renderExams();
+                renderSpecialties();
+            }
+        };
+
+        function editExam(index) {
+            editingIndex = index;
+            const exam = savedExams[index];
+            document.getElementById('spec-name').value = exam.name;
+            document.getElementById('spec-attempts').value = exam.maxAttempts || 1;
+            document.getElementById('questions-container').innerHTML = '';
+            exam.questions.forEach(q => {
+                addQuestion();
+                const lastQ = document.getElementById('questions-container').lastElementChild;
+                const inputs = lastQ.querySelectorAll('input');
+                inputs[0].value = q.text;
+                inputs[1].value = q.options[0];
+                inputs[2].value = q.options[1];
+                inputs[3].value = q.options[2];
+                inputs[4].value = q.options[3];
+                lastQ.querySelector('select').value = q.correct;
+            });
+            document.getElementById('submit-btn').innerHTML = 'Actualizar Examen';
+            document.getElementById('cancel-edit-btn').style.display = 'block';
+            document.getElementById('examen').scrollIntoView();
+        }
+
+        window.toggleExamStatus = async function(index) {
+            const exam = savedExams[index];
+            await _supabase.from('exams').update({ active: !exam.active }).eq('id', exam.id);
+            await renderExams();
+            renderSpecialties();
+        };
+
+        function resetForm() {
+            editingIndex = null;
+            document.getElementById('create-exam-form').reset();
+            document.getElementById('questions-container').innerHTML = '';
+            document.getElementById('submit-btn').innerText = 'Guardar Examen';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+            addQuestion();
+        }
+        function viewExamDetails(index) {
+            const exam = savedExams[index];
+            let details = `Especialidad: ${exam.name}\n`;
+            exam.questions.forEach((q, i) => details += `P${i+1}: ${q.text}\n`);
+            alert(details);
+        }
+        document.getElementById('create-exam-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('spec-name').value;
+            const maxAttempts = parseInt(document.getElementById('spec-attempts').value) || 1;
+            const logoInput = document.getElementById('spec-logo');
+            const questionNodes = document.querySelectorAll('.question-builder');
+            const questions = Array.from(questionNodes).map(node => {
+                const inputs = node.querySelectorAll('input');
+                return { text: inputs[0].value, options: [inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value], correct: node.querySelector('select').value };
+            });
+            const newExam = { id: editingIndex !== null ? savedExams[editingIndex].id : `exam_${Date.now()}`, name, questions, logo: null, maxAttempts, active: editingIndex !== null ? savedExams[editingIndex].active : false };
+            const saveAndRefresh = async () => {
+                if (editingIndex !== null) {
+                    const examId = savedExams[editingIndex].id;
+                    if (!newExam.logo) newExam.logo = savedExams[editingIndex].logo;
+                    await _supabase.from('exams').update(newExam).eq('id', examId);
+                } else {
+                    await _supabase.from('exams').insert([newExam]);
+                }
+                await renderExams();
+                renderSpecialties(); 
+                resetForm();
+            };
+            if (logoInput.files && logoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (event) => { newExam.logo = event.target.result; saveAndRefresh(); };
+                reader.readAsDataURL(logoInput.files[0]);
+            } else { saveAndRefresh(); }
+        });
+
+        // Inicialización corregida
+        async function init() {
+            addQuestion();
+            await renderExams();
+            renderSpecialties();
+        }
+        init();
+
+        // Lógica para cerrar sesión
+        document.getElementById('logout-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('¿Desea cerrar su sesión y regresar al inicio?')) {
+                localStorage.removeItem('z2_current_user');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
