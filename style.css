@@ -188,15 +188,60 @@ body {
 }
 
 /* Login Container */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--bg-lighter) 0%, #e2e8f0 100%);
+}
+
 .login-container {
     background: var(--white);
     width: 100%;
     max-width: 400px;
-    padding: 2.5rem;
+    padding: 3rem 2.5rem;
     border-radius: 16px;
     box-shadow: var(--shadow-lg);
+    margin: 0;
+}
+
+.logo-area {
+    margin-bottom: 2rem;
     text-align: center;
-    margin: 2rem auto;
+}
+
+.logo-area img {
+    max-width: 160px;
+    height: auto;
+}
+
+.login-container h2, 
+.login-container p {
+    text-align: center;
+}
+
+.login-container p {
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+}
+
+/* Forms inside login */
+.switch-form {
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.switch-form a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.switch-form a:hover {
+    text-decoration: underline;
 }
 
 /* Certificate Preview */

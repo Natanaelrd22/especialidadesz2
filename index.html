@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
 
 </head>
-<body>
+<body class="login-page">
 
     <div class="login-container">
         <div class="logo-area">
@@ -132,11 +132,11 @@
 
                 const { data, error } = await _supabase
                     .from('users')
-                    .insert([{ name, email, password: hashedPass, role: 'user', blocked: false }])
-                    .select()
-                    .single();
+                    .insert([{ name, email, password: hashedPass, role: 'user', blocked: false }]);
 
-                if (error) throw new Error('Error en registro: ' + error.message);
+                if (error) {
+                    throw new Error(error.code === '42501' ? 'Error de permisos (RLS) en la base de datos.' : error.message);
+                }
                 
                 alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
                 toggleForm();
