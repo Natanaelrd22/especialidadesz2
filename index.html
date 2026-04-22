@@ -5,124 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso - Portal Z2</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e293b;
-            --bg-light: #f1f5f9;
-            --white: #ffffff;
-            --text-main: #334155;
-            --transition: all 0.3s ease;
-        }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background-color: var(--bg-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            color: var(--text-main);
-        }
-
-        .login-container {
-            background: var(--white);
-            width: 100%;
-            max-width: 400px;
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .logo-area img {
-            width: 120px;
-            height: auto;
-            margin-bottom: 1.5rem;
-        }
-
-        h2 {
-            margin-bottom: 0.5rem;
-            color: var(--secondary-color);
-        }
-
-        p {
-            font-size: 0.9rem;
-            color: #64748b;
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            text-align: left;
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .form-group input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 0.85rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            margin-top: 1rem;
-        }
-
-        .btn-submit:hover {
-            background-color: #1d4ed8;
-        }
-
-        .switch-form {
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        .switch-form a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .hidden { display: none; }
-    </style>
 </head>
 <body>
 
     <div class="login-container">
         <div class="logo-area">
-            <img src="fondo/zona2.png" alt="Logo Z2" onerror="this.src='https://via.placeholder.com/120?text=Z2+Logo'">
+            <img src="Fondo/zona2.png" alt="Logo Z2" onerror="this.src='https://via.placeholder.com/120?text=Z2+Logo'">
         </div>
 
         <!-- Formulario de Inicio de Sesión -->
@@ -138,10 +29,10 @@
                     <label>Contraseña</label>
                     <input type="password" id="login-pass" required placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-submit">Iniciar Sesión</button>
+                <button type="submit" class="btn btn--primary" style="width: 100%; justify-content: center;">Iniciar Sesión</button>
             </form>
             <div class="switch-form">
-                ¿No tienes cuenta? <a href="#" onclick="toggleForm()">Regístrate aquí</a>
+                ¿No tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm()">Regístrate aquí</a>
             </div>
         </div>
 
@@ -162,19 +53,54 @@
                     <label>Contraseña</label>
                     <input type="password" id="reg-pass" required placeholder="Crea una contraseña">
                 </div>
-                <button type="submit" class="btn-submit">Registrarse</button>
+                <button type="submit" class="btn btn--primary" style="width: 100%; justify-content: center;">Registrarse</button>
             </form>
             <div class="switch-form">
-                ¿Ya tienes cuenta? <a href="#" onclick="toggleForm()">Inicia sesión</a>
+                ¿Ya tienes cuenta? <a href="javascript:void(0)" onclick="toggleForm()">Inicia sesión</a>
             </div>
         </div>
     </div>
 
-    <script>
+<script>
         // Configuración de Supabase
         const supabaseUrl = 'https://snznujqmoimycrfdtqgi.supabase.co';
         const supabaseKey = 'sb_publishable_sBsXMDH8sD4eC8PANPyaYw_3mNggHi0';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Sanitización básica de inputs
+        function sanitizeInput(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Hash de contraseña con PBKDF2 (cliente-side)
+        async function hashPassword(password) {
+            const enc = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                enc.encode(password),
+                { name: 'PBKDF2' },
+                false,
+                ['deriveBits']
+            );
+            const hashBuffer = await crypto.subtle.deriveBits(
+                {
+                    name: 'PBKDF2',
+                    salt: enc.encode('z2-portal-salt'),
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                256
+            );
+            return btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+        }
+
+        function toggleLoading(btn, show) {
+            btn.disabled = show;
+            btn.innerHTML = show ? '<span class="loading"></span> Cargando...' : btn.dataset.originalText || btn.innerText;
+        }
 
         function toggleForm() {
             document.getElementById('login-section').classList.toggle('hidden');
@@ -183,42 +109,83 @@
 
         async function handleRegister(e) {
             e.preventDefault();
-            const name = document.getElementById('reg-name').value;
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.dataset.originalText = btn.innerText;
+            toggleLoading(btn, true);
 
-            const { data, error } = await _supabase
-                .from('users')
-                .insert([{ name, email, password: pass, role: 'user' }]);
+            try {
+                const name = sanitizeInput(document.getElementById('reg-name').value.trim());
+                const email = sanitizeInput(document.getElementById('reg-email').value.trim().toLowerCase());
+                const pass = document.getElementById('reg-pass').value;
 
-            if (error) alert('Error: ' + error.message);
-            else {
-                alert('Registro exitoso.');
+                if (!name || !email || !pass) {
+                    throw new Error('Por favor completa todos los campos.');
+                }
+                if (pass.length < 6) {
+                    throw new Error('La contraseña debe tener al menos 6 caracteres.');
+                }
+                if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+                    throw new Error('Formato de correo inválido.');
+                }
+
+                const hashedPass = await hashPassword(pass);
+
+                const { data, error } = await _supabase
+                    .from('users')
+                    .insert([{ name, email, password: hashedPass, role: 'user', blocked: false }])
+                    .select()
+                    .single();
+
+                if (error) throw new Error('Error en registro: ' + error.message);
+                
+                alert('¡Registro exitoso! Ahora puedes iniciar sesión.');
                 toggleForm();
+                e.target.reset();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                toggleLoading(btn, false);
             }
         }
 
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.dataset.originalText = btn.innerText;
+            toggleLoading(btn, true);
 
-            const { data: user, error } = await _supabase
-                .from('users')
-                .select('*')
-                .eq('email', email)
-                .eq('password', pass)
-                .single();
+            try {
+                const email = sanitizeInput(document.getElementById('login-email').value.trim().toLowerCase());
+                const pass = document.getElementById('login-pass').value;
 
-            if (user) {
-                if (user.blocked) {
-                    alert('Tu cuenta ha sido bloqueada. Por favor, contacta al administrador.');
-                    return;
+                if (!email || !pass) {
+                    throw new Error('Ingresa correo y contraseña.');
                 }
-                localStorage.setItem('z2_current_user', JSON.stringify(user));
-                window.location.href = 'panel_principal.html';
-            } else {
-                alert('Correo o contraseña incorrectos.');
+
+                const hashedPass = await hashPassword(pass);
+
+                const { data: user, error } = await _supabase
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .eq('password', hashedPass)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw new Error('Error de conexión: ' + error.message);
+                
+                if (user) {
+                    if (user.blocked) {
+                        throw new Error('Tu cuenta está bloqueada. Contacta al administrador.');
+                    }
+                    localStorage.setItem('z2_current_user', JSON.stringify(user));
+                    window.location.href = 'panel_principal.html';
+                } else {
+                    throw new Error('Correo o contraseña incorrectos.');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                toggleLoading(btn, false);
             }
         }
     </script>

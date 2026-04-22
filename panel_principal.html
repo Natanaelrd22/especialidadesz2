@@ -7,7 +7,12 @@
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
     <style>
+        /* Corregido: Agregada clase .hidden que faltaba */
+        .hidden { display: none !important; }
+        
+        /* Estilos base */
         :root {
             --primary-color: #2563eb;
             --secondary-color: #1e293b;
@@ -199,6 +204,7 @@
         
         // Redirigir si no hay sesión
         if (!currentUser) window.location.href = 'index.html';
+        let userAttempts = JSON.parse(localStorage.getItem('z2_user_attempts')) || {};
 
         const isAdmin = currentUser && currentUser.role === 'admin';
         if (!isAdmin) {
@@ -217,6 +223,7 @@
             item.addEventListener('click', async (e) => {
                 const targetId = item.getAttribute('data-target');
                 if (!targetId) return;
+                if (targetId === 'certificados') return;
                 e.preventDefault();
                 navItems.forEach(i => i.classList.remove('active'));
                 sections.forEach(s => s.classList.remove('active'));
@@ -268,6 +275,7 @@
             const list = document.getElementById('specialties-list');
             const activeExams = savedExams.filter(e => e.active);
             list.innerHTML = '';
+            userAttempts = JSON.parse(localStorage.getItem('z2_user_attempts')) || {};
             activeExams.forEach((exam) => {
                 const originalIndex = savedExams.indexOf(exam);
                 const examId = exam.id || `exam_${originalIndex}`;
@@ -311,11 +319,17 @@
             });
             const finalScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
             
+// Actualizar intentos locales y guardar resultado
+            const examId = exam.id || `exam_${currentPlayingIndex}`;
+            userAttempts[examId] = (userAttempts[examId] || 0) + 1;
+            localStorage.setItem('z2_user_attempts', JSON.stringify(userAttempts));
+            
             // Guardar resultado en Supabase
             const { error } = await _supabase.from('exam_results').insert([{
                 user_id: currentUser.id,
-                exam_id: exam.id,
-                score: finalScore
+                exam_id: examId,
+                score: finalScore,
+                date: new Date().toISOString()
             }]);
 
             if (error) console.error('Error al guardar resultado:', error);
@@ -546,7 +560,17 @@
                 const inputs = node.querySelectorAll('input');
                 return { text: inputs[0].value, options: [inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value], correct: node.querySelector('select').value };
             });
-            const newExam = { id: editingIndex !== null ? savedExams[editingIndex].id : `exam_${Date.now()}`, name, questions, logo: null, maxAttempts, active: editingIndex !== null ? savedExams[editingIndex].active : false };
+
+            const newExam = { 
+                name, 
+                questions, 
+                logo: null, 
+                maxAttempts, 
+                active: editingIndex !== null ? savedExams[editingIndex].active : false 
+            };
+            // Solo incluir ID si estamos editando
+            if (editingIndex !== null) newExam.id = savedExams[editingIndex].id;
+
             const saveAndRefresh = async () => {
                 if (editingIndex !== null) {
                     const examId = savedExams[editingIndex].id;
