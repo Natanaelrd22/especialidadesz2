@@ -163,6 +163,7 @@
         let savedExams = []; // Variable global para los exámenes de la DB
         let currentQuestionIndex = 0;
         let userAnswers = {};
+        let autoNextTimeout = null;
 
         async function renderExams() {
             const list = document.getElementById('exams-list');
@@ -280,9 +281,21 @@
             // Actualización visual inmediata sin re-renderizar todo
             document.querySelectorAll('.option-card').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
+
+            // Auto-avanzar a la siguiente pregunta tras un breve retraso
+            if (autoNextTimeout) clearTimeout(autoNextTimeout);
+            
+            const exam = savedExams[currentPlayingIndex];
+            if (currentQuestionIndex < exam.questions.length - 1) {
+                autoNextTimeout = setTimeout(() => {
+                    nextQuestion();
+                    autoNextTimeout = null;
+                }, 500); // 500ms permite que el usuario vea su selección antes de cambiar
+            }
         }
 
         function nextQuestion() {
+            if (autoNextTimeout) clearTimeout(autoNextTimeout);
             if (currentQuestionIndex < savedExams[currentPlayingIndex].questions.length - 1) {
                 currentQuestionIndex++;
                 renderCurrentQuestion();
@@ -290,6 +303,7 @@
         }
 
         function prevQuestion() {
+            if (autoNextTimeout) clearTimeout(autoNextTimeout);
             if (currentQuestionIndex > 0) {
                 currentQuestionIndex--;
                 renderCurrentQuestion();
@@ -325,6 +339,7 @@
             closeExamPlayer();
         }
         function closeExamPlayer() {
+            if (autoNextTimeout) clearTimeout(autoNextTimeout);
             document.getElementById('specialties-view').style.display = 'block';
             document.getElementById('exam-player').style.display = 'none';
         }
