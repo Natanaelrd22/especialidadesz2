@@ -123,6 +123,36 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* Header & User Info Layout */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    width: 100%;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 1rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--secondary-color);
+}
+
+.user-info {
+    margin-left: auto; /* Empuja el contenido totalmente a la derecha */
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.user-info b {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
 .exam-card {
     background: var(--bg-lighter);
     border: 1px solid var(--border-light);
