@@ -206,7 +206,8 @@
         if (!currentUser) window.location.href = 'index.html';
         let userAttempts = JSON.parse(localStorage.getItem('z2_user_attempts')) || {};
 
-        const isAdmin = currentUser && currentUser.role === 'admin';
+        // Normalizamos a minúsculas para evitar errores si en la DB dice "Admin" o "ADMIN"
+        const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
         if (!isAdmin) {
             document.querySelectorAll('[data-target="examen"], [data-target="Usuarios"], [data-target="certificados"]').forEach(el => el.style.display = 'none');
         }
@@ -380,10 +381,10 @@
                 html += `
                     <tr>
                         <td>${res.exams.name}</td>
-                        ${isAdmin ? `<td><small>${res.user_id}</small></td>` : ''}
-                        <td>${res.date}</td>
+                        ${isAdmin ? `<td><small>${res.user_id.substring(0,8)}...</small></td>` : ''}
+                        <td>${new Date(res.date).toLocaleDateString()}</td>
                         <td>${res.score}/100</td>
-                        <td style="color: ${isPassed ? '#10b981' : '#ef4444'}; font-weight: bold;">${isPassed ? 'Aprobado' : 'No Aprobado'}</td>
+                        <td><span class="badge ${isPassed ? 'btn-success' : 'btn-danger'}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${isPassed ? 'Aprobado' : 'Reprobado'}</span></td>
                         <td>
                             <div style="display: flex; gap: 5px;">
                                 ${isPassed ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Certificado"><i class="fas fa-certificate"></i></button>` : ''}

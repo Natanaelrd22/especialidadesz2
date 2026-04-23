@@ -163,21 +163,25 @@
                 }
 
                 const hashedPass = await hashPassword(pass);
+                console.log("Hash generado para login:", hashedPass); // Ayuda para depurar
 
                 const { data: user, error } = await _supabase
                     .from('users')
                     .select('*')
-                    .eq('email', email)
+                    .ilike('email', email) // ilike no distingue entre mayúsculas y minúsculas
                     .eq('password', hashedPass)
-                    .single();
+                    .maybeSingle(); // Cambiado para evitar error 406 si no hay resultados
 
-                if (error && error.code !== 'PGRST116') throw new Error('Error de conexión: ' + error.message);
+                if (error) throw new Error('Error de conexión: ' + error.message);
                 
                 if (user) {
                     if (user.blocked) {
                         throw new Error('Tu cuenta está bloqueada. Contacta al administrador.');
                     }
-                    localStorage.setItem('z2_current_user', JSON.stringify(user));
+                    
+                    // Seguridad: Eliminar la contraseña del objeto antes de guardar en localStorage
+                    const { password, ...userSession } = user;
+                    localStorage.setItem('z2_current_user', JSON.stringify(userSession));
                     window.location.href = 'panel_principal.html';
                 } else {
                     throw new Error('Correo o contraseña incorrectos.');
