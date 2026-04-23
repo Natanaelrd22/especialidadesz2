@@ -579,16 +579,23 @@
             if (editingIndex !== null) newExam.id = savedExams[editingIndex].id;
 
             const saveAndRefresh = async () => {
+                let result;
                 if (editingIndex !== null) {
                     const examId = savedExams[editingIndex].id;
                     if (!newExam.logo) newExam.logo = savedExams[editingIndex].logo;
-                    await _supabase.from('exams').update(newExam).eq('id', examId);
+                    result = await _supabase.from('exams').update(newExam).eq('id', examId);
                 } else {
-                    await _supabase.from('exams').insert([newExam]);
+                    result = await _supabase.from('exams').insert([newExam]);
                 }
-                await renderExams();
-                renderSpecialties(); 
-                resetForm();
+
+                if (result.error) {
+                    alert("Error al guardar el examen: " + result.error.message);
+                } else {
+                    alert("Examen guardado exitosamente");
+                    await renderExams();
+                    renderSpecialties(); 
+                    resetForm();
+                }
             };
             if (logoInput.files && logoInput.files[0]) {
                 const reader = new FileReader();
