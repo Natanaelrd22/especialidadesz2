@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Sobreescrituras específicas para la página de certificados */
     h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #0f172a; }
     
     .tabs-nav {
@@ -42,39 +41,7 @@
     .tab-pane:not(.active) {
       display: none !important; /* Ocultar solo si no tiene la clase active */
     }
-    #cert-form label { display: flex; flex-direction: column; gap: 0.5rem; font-weight: 600; font-size: 0.875rem; color: #475569; }
-    #cert-form input, #cert-form select {
-      padding: 0.6rem;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-    }
-    button {
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      transition: opacity 0.2s;
-    }
-    button[type="submit"] { background: #2563eb; color: white; width: fit-content; }
-    
-    .certificate-preview {
-      width: 100%;
-      aspect-ratio: 1.414 / 1; /* Proporción A4 horizontal */
-      background: #fff;
-      border: 2px solid #e2e8f0;
-      margin: 2rem 0;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      background-color: #ffffff;
-    }
 
-    .coord-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
     .coord-row {
       display: flex;
       gap: 10px;
@@ -234,7 +201,9 @@
     <h2>Vista Previa del Diploma</h2>
     <div class="certificate-preview" id="cert-preview">
         <!-- Imagen de fondo real -->
-        <img src="diplomas/cert_1.png" alt="Plantilla" id="bg-image" 
+        <img src="diplomas/cert_1.png" 
+             alt="Plantilla" 
+             id="bg-image" 
              onerror="
                 if (this.src.includes('diplomas/')) this.src='Diplomas/cert_1.png';
                 else if (this.src.includes('Diplomas/')) this.src='Certificados/cert_1.png';
@@ -249,7 +218,6 @@
         
         <div id="prev-coord" class="cert-field-preview">COORDINADOR</div>
         <div id="prev-inst" class="cert-field-preview">INSTRUCTOR</div>
-        
         <img id="prev-sig-c" class="cert-field-preview" style="display:none;">
         <img id="prev-sig-i" class="cert-field-preview" style="display:none;">
     </div>

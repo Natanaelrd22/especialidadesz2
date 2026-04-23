@@ -9,109 +9,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Corregido: Agregada clase .hidden que faltaba */
-        .hidden { display: none !important; }
-        
-        /* Estilos base */
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e293b;
-            --bg-light: #f8fafc;
-            --text-main: #334155;
-            --white: #ffffff;
-            --transition: all 0.3s ease;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            display: flex;
-            min-height: 100vh;
-        }
-        .sidebar {
-            width: 280px;
-            background-color: var(--secondary-color);
-            color: var(--white);
-            display: flex;
-            flex-direction: column;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-        }
-        .sidebar-header { padding: 2rem; text-align: center; border-bottom: 1px solid #334155; }
-        .sidebar-nav { flex-grow: 1; padding: 1rem 0; }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem 2rem;
-            color: #94a3b8;
-            text-decoration: none;
-            transition: var(--transition);
-            border-left: 4px solid transparent;
-        }
-        .nav-item i { margin-right: 12px; width: 20px; text-align: center; }
-        .nav-item:hover, .nav-item.active {
-            background-color: #334155;
-            color: var(--white);
-            border-left-color: var(--primary-color);
-        }
-        .main-container { flex-grow: 1; padding: 2rem; overflow-y: auto; }
+        /* Solo estilos que NO están en style.css o que son específicos de esta página */
+        body { display: flex; }
         header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .content-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            min-height: 400px;
-        }
         .view-section { display: none; }
         .view-section.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .exam-form { display: flex; flex-direction: column; gap: 1.5rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group label { font-weight: 600; font-size: 0.9rem; }
-        .form-group input, .form-group textarea, .form-group select { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
         .question-builder { border: 1px dashed #cbd5e1; padding: 1.5rem; border-radius: 8px; margin-top: 1rem; background: #fdfdfd; }
-        .btn-action { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: var(--transition); }
-        .btn-primary { background: var(--primary-color); color: white; }
-        .btn-secondary { background: #64748b; color: white; margin-top: 1rem; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-primary:hover { opacity: 0.9; }
-        .exams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
-        .exam-card { background: #f1f5f9; border-radius: 10px; padding: 1.25rem; border: 1px solid #e2e8f0; transition: var(--transition); }
-        .exam-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .exam-card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-        .exam-card-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; background: #cbd5e1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .exam-card h4 { margin: 0; color: var(--secondary-color); }
-        .exam-card p { font-size: 0.85rem; color: #64748b; margin: 4px 0 12px 0; }
-        .card-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 1rem; }
-        .btn-small { padding: 0.5rem; font-size: 0.75rem; width: 100%; margin: 0 !important; }
-        .option-label { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: var(--transition); margin-bottom: 8px; }
-        .option-label:hover { background-color: #f1f5f9; }
-        .option-label input { cursor: pointer; }
-
-        /* Estilos para la tabla de usuarios */
-        .user-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
-        .user-table th, .user-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .user-table th {
-            background-color: #f8fafc;
-            color: var(--secondary-color);
-            font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: relative; }
-            .nav-item { padding: 1rem; justify-content: center; }
-        }
     </style>
 </head>
 <body>

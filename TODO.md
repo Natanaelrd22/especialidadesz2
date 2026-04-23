@@ -13,6 +13,7 @@ Approved plan: Security/UX fixes, extract CSS, add cert download, etc.
 - [x] Step 6: Test full flow (login/exam/cert) - Verified
 - [x] Step 7: Complete updates - Admin access fixed (Plain text vs Hash mismatch resolved)
 - [x] Step 8: Rename folder 'Certificados' to 'diplomas' and update UI labels
+- [x] Step 9: Final deployment and folder case-sensitivity fix
 
 ## Previous Tasks
 ### Task: Fix 404 error for zona2.png image
@@ -20,4 +21,4 @@ Approved plan: Security/UX fixes, extract CSS, add cert download, etc.
 - [x] Edit index.html to correct image src from "fondo/zona2.png" to "Fondo/zona2.png"
 - [x] Verify fix and complete task
 
-**Current Progress**: Project fully functional. Data consistency between DB and Login Logic established.
+**Current Progress**: Deployment finalized. Project live and functional on GitHub Pages.
