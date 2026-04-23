@@ -234,16 +234,20 @@
             'Diplomas/cert_1.png',
             'diplomas/cert_1.PNG',
             'Certificados/cert_1.png',
-            'certificados/cert_1.png'
+            'certificados/cert_1.png',
+            'diploma/cert_1.png',
+            'diplomas/cert_1.jpg',
+            'diplomas/cert_1.JPG'
         ];
         
         const currentIdx = attempts.findIndex(path => img.src.endsWith(path));
         if (currentIdx !== -1 && currentIdx < attempts.length - 1) {
-            console.warn(`404 en ${attempts[currentIdx]}, intentando: ${attempts[currentIdx + 1]}`);
+            console.warn(`[404] No hallado en: ${attempts[currentIdx]}. Probando: ${attempts[currentIdx + 1]}`);
             img.src = attempts[currentIdx + 1];
         } else {
             img.onerror = null;
-            img.src = 'https://placehold.co/1000x700?text=Error+Plantilla+No+Encontrada';
+            img.src = 'https://placehold.co/1000x700?text=Error:+Archivo+No+Encontrado+en+GitHub';
+            console.error("FATAL: No se encontró cert_1.png en ninguna ruta. Revisa que el archivo esté en la carpeta 'diplomas' en GitHub.");
         }
     }
 
