@@ -205,10 +205,18 @@
              alt="Plantilla" 
              id="bg-image" 
              onerror="
+                console.warn('Fallo al cargar:', this.src);
                 if (this.src.includes('diplomas/')) { this.src='Diplomas/cert_1.png'; }
                 else if (this.src.includes('Diplomas/')) { this.src='Certificados/cert_1.png'; }
                 else if (this.src.includes('Certificados/')) { this.src='certificados/cert_1.png'; }
-                else { this.onerror=null; this.src='https://via.placeholder.com/1000x700?text=Error+al+cargar+plantilla'; }
+                else if (this.src.includes('certificados/')) { this.src='diplomas/cert_1.PNG'; }
+                else if (this.src.includes('.PNG')) { this.src='diploma/cert_1.png'; }
+                else if (this.src.includes('diploma/')) { this.src='Diploma/cert_1.png'; }
+                else { 
+                    this.onerror=null; 
+                    this.src='https://placehold.co/1000x700?text=Error+al+cargar+plantilla'; 
+                    console.error('No se encontró la plantilla en ninguna ruta conocida.');
+                }
              " 
              onload="updatePreview()">
         
