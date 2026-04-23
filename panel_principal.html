@@ -208,8 +208,9 @@
 
         // Normalizamos a minúsculas para evitar errores si en la DB dice "Admin" o "ADMIN"
         const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+        // Permitimos que todos vean "Certificados", pero ocultamos gestión de exámenes y usuarios a no-admins
         if (!isAdmin) {
-            document.querySelectorAll('[data-target="examen"], [data-target="Usuarios"], [data-target="certificados"]').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('[data-target="examen"], [data-target="Usuarios"]').forEach(el => el.style.display = 'none');
         }
 
         if (currentUser && currentUser.name) {

@@ -245,7 +245,7 @@
     <h2>Vista Previa del Certificado</h2>
     <div class="certificate-preview" id="cert-preview">
         <!-- Imagen de fondo real -->
-        <img src="certificados/cert_1.png" alt="Plantilla" id="bg-image">
+        <img src="Certificados/cert_1.png" alt="Plantilla" id="bg-image" onerror="this.src='certificados/cert_1.png'">
         
         <!-- Campos superpuestos -->
         <div id="prev-name" class="cert-field-preview">NOMBRE DEL USUARIO</div>
@@ -350,7 +350,8 @@
         const currentUser = JSON.parse(localStorage.getItem('z2_current_user'));
         if (!currentUser) window.location.href = 'index.html';
 
-        const isAdmin = currentUser && currentUser.role === 'admin';
+        // Validación de admin robusta
+        const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
 
         // Cargar desde Supabase
         const { data } = await _supabase

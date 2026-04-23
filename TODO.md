@@ -9,6 +9,7 @@ Approved plan: Security/UX fixes, extract CSS, add cert download, etc.
 - [x] Step 4: Fix Database RLS - Add policies for user insertion and selection
 - [x] Step 4: Update certificados.html - link style.css, fix Supabase initialization
 - [x] Step 5: Fix Login UI "altered" state in style.css
+- [x] Step 5: Fix Database Schema - Add 'logo', 'maxAttempts' and 'active' columns to exams table
 - [x] Step 6: Test full flow (login/exam/cert) - Verified
 - [x] Step 7: Complete updates - Admin access fixed (Plain text vs Hash mismatch resolved)
 
