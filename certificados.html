@@ -234,7 +234,7 @@
     <h2>Vista Previa del Diploma</h2>
     <div class="certificate-preview" id="cert-preview">
         <!-- Imagen de fondo real -->
-        <img src="diplomas/cert_1.png" alt="Plantilla" id="bg-image" onerror="this.onerror=null; this.src='Diplomas/cert_1.png';" onload="updatePreview()">
+        <img src="diplomas/cert_1.png" alt="Plantilla" id="bg-image" onerror="if(this.src.includes('diplomas/')) this.src='Diplomas/cert_1.png'; else if(this.src.includes('Diplomas/')) this.src='Certificados/cert_1.png'; this.onerror=null;" onload="updatePreview()">
         
         <!-- Campos superpuestos -->
         <div id="prev-name" class="cert-field-preview">NOMBRE DEL USUARIO</div>
