@@ -201,7 +201,7 @@
     <h2>Vista Previa del Diploma</h2>
     <div class="certificate-preview" id="cert-preview">
         <!-- Imagen de fondo real -->
-        <img src="diplomas/cert_1.png" 
+        <img src="diplomas/Cert_1.png" 
              alt="Plantilla" 
              id="bg-image" 
              onerror="handleImageError(this)" 
@@ -230,24 +230,23 @@
     // Función robusta para manejar fallos de carga de imagen por case-sensitivity
     function handleImageError(img) {
         const attempts = [
+            'diplomas/Cert_1.png',
+            'Diplomas/Cert_1.png',
             'diplomas/cert_1.png',
             'Diplomas/cert_1.png',
-            'diplomas/cert_1.PNG',
-            'Certificados/cert_1.png',
-            'certificados/cert_1.png',
-            'diploma/cert_1.png',
-            'diplomas/cert_1.jpg',
-            'diplomas/cert_1.JPG'
+            'Certificados/Cert_1.png',
+            'diploma/Cert_1.png',
+            'diplomas/Cert_1.jpg'
         ];
         
         const currentIdx = attempts.findIndex(path => img.src.endsWith(path));
         if (currentIdx !== -1 && currentIdx < attempts.length - 1) {
-            console.warn(`[404] No hallado en: ${attempts[currentIdx]}. Probando: ${attempts[currentIdx + 1]}`);
+            console.warn(`[404] No hallado en: ${attempts[currentIdx]}. Probando variante: ${attempts[currentIdx + 1]}`);
             img.src = attempts[currentIdx + 1];
         } else {
             img.onerror = null;
             img.src = 'https://placehold.co/1000x700?text=Error:+Archivo+No+Encontrado+en+GitHub';
-            console.error("FATAL: No se encontró cert_1.png en ninguna ruta. Revisa que el archivo esté en la carpeta 'diplomas' en GitHub.");
+            console.error("FATAL: No se encontró Cert_1.png en ninguna ruta. Revisa que el archivo esté en la carpeta 'diplomas' en GitHub con la C mayúscula.");
         }
     }
 

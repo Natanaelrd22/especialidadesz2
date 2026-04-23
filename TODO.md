@@ -15,7 +15,7 @@ Approved plan: Security/UX fixes, extract CSS, add cert download, etc.
 - [x] Step 8: Rename folder 'Certificados' to 'diplomas' and update UI labels
 - [x] Step 9: Final deployment and folder case-sensitivity fix
 - [x] Step 10: Robust image fallback chain and historial UI improvements
-- [ ] Step 11: Verify GitHub physical file existence and case naming
+- [x] Step 11: Verify GitHub physical file existence and case naming
 
 ## Previous Tasks
 ### Task: Fix 404 error for zona2.png image
