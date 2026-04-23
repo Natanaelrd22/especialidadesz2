@@ -249,6 +249,11 @@
             const list = document.getElementById('exams-list');
             const { data, error } = await _supabase.from('exams').select('*').order('created_at', { ascending: false });
             
+            if (error) {
+                console.error("Error cargando exámenes desde Supabase:", error);
+                return;
+            }
+            
             if (data) {
                 savedExams = data;
                 list.innerHTML = '';
