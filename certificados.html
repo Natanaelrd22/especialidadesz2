@@ -7,25 +7,8 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background-color: #f1f5f9;
-      color: #1e293b;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-    }
-    .container {
-      width: 100%;
-      max-width: 1100px;
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
+    /* Sobreescrituras específicas para la página de certificados */
     h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #0f172a; }
-    .nav a { color: #2563eb; text-decoration: none; font-weight: 500; }
     
     .tabs-nav {
       display: flex;
@@ -347,85 +330,85 @@
 
     // Función para cargar la configuración guardada al iniciar (desde la DB)
     async function loadCertConfig() {
-        const currentUser = JSON.parse(localStorage.getItem('z2_current_user'));
-        if (!currentUser) window.location.href = 'index.html';
-
-        // Validación de admin robusta
-        const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-
-        // Cargar desde Supabase
-        const { data } = await _supabase
-            .from('cert_configs')
-            .select('config_data')
-            .eq('id', 'main_config')
-            .single();
-            
-        if (data) {
-            const config = data.config_data;
-            
-            if(config.userName) document.getElementById('cert-user').value = config.userName;
-            if(config.courseName) document.getElementById('cert-course').value = config.courseName;
-            if(config.coordName) document.getElementById('cert-coord').value = config.coordName;
-            if(config.instName) document.getElementById('cert-inst').value = config.instName;
-            if(config.certDate) document.getElementById('cert-date').value = config.certDate;
-            signatureCoord = config.sigCoord || null;
-            signatureInst = config.sigInst || null;
-
-            document.getElementById('cert-font').value = config.font;
-            document.getElementById('font-user').value = config.fontSizeUser;
-            document.getElementById('font-other').value = config.fontSizeOther;
-            document.getElementById('top-name').value = config.topName;
-            document.getElementById('left-name').value = config.leftName;
-            document.getElementById('top-course').value = config.topCourse;
-            document.getElementById('left-course').value = config.leftCourse;
-            document.getElementById('top-date').value = config.topDate;
-            document.getElementById('left-date').value = config.leftDate;
-            
-            if(config.topCoord) document.getElementById('top-coord').value = config.topCoord;
-            if(config.leftCoord) document.getElementById('left-coord').value = config.leftCoord;
-            if(config.topInst) document.getElementById('top-inst').value = config.topInst;
-            if(config.leftInst) document.getElementById('left-inst').value = config.leftInst;
-            if(config.topSigC) document.getElementById('top-sig-c').value = config.topSigC;
-            if(config.leftSigC) document.getElementById('left-sig-c').value = config.leftSigC;
-            if(config.topSigI) document.getElementById('top-sig-i').value = config.topSigI;
-            if(config.leftSigI) document.getElementById('left-sig-i').value = config.leftSigI;
-            if(config.wSigC) document.getElementById('w-sig-c').value = config.wSigC;
-            if(config.wSigI) document.getElementById('w-sig-i').value = config.wSigI;
-        }
-
-        // Obtener usuario logueado para poner su nombre por defecto (Prioridad sobre diseño guardado)
-        if (currentUser && currentUser.name) {
-            document.getElementById('cert-user').value = currentUser.name;
-        }
-
-        // Verificar si hay una solicitud de auto-llenado desde el historial (Máxima prioridad para datos del examen)
-        const autoFill = JSON.parse(localStorage.getItem('cert_auto_fill'));
-        if (autoFill) {
-            document.getElementById('cert-user').value = autoFill.user;
-            document.getElementById('cert-course').value = autoFill.course;
-            document.getElementById('cert-date').value = autoFill.date;
-            localStorage.removeItem('cert_auto_fill'); // Limpiar después de usar
-        }
-
-        // Bloquear edición si el usuario no es administrador
-        if (!isAdmin) {
-            const form = document.getElementById('cert-form');
-            // Deshabilitar campos de texto, números, archivos y selectores
-            form.querySelectorAll('input, select').forEach(el => {
-                el.disabled = true;
-            });
-            // Bloquear específicamente el botón de guardar configuración
-            const saveBtn = form.querySelector('button[onclick="saveCertConfig()"]');
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.style.opacity = "0.5";
-                saveBtn.style.cursor = "not-allowed";
+        try {
+            const currentUser = JSON.parse(localStorage.getItem('z2_current_user'));
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return;
             }
-            // Ocultar pestañas de configuración (solo dejar Datos)
-            document.querySelectorAll('.tab-btn:not([onclick*="tab-datos"])').forEach(btn => btn.style.display = 'none');
-        }
 
-        updatePreview(); // Actualizar la vista previa con los datos cargados
+            const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+
+            // Cargar desde Supabase de forma segura
+            const { data, error } = await _supabase
+                .from('cert_configs')
+                .select('config_data')
+                .eq('id', 'main_config')
+                .maybeSingle();
+            
+            if (data && data.config_data) {
+                const config = data.config_data;
+                
+                if(config.userName) document.getElementById('cert-user').value = config.userName;
+                if(config.courseName) document.getElementById('cert-course').value = config.courseName;
+                if(config.coordName) document.getElementById('cert-coord').value = config.coordName;
+                if(config.instName) document.getElementById('cert-inst').value = config.instName;
+                if(config.certDate) document.getElementById('cert-date').value = config.certDate;
+                signatureCoord = config.sigCoord || null;
+                signatureInst = config.sigInst || null;
+
+                document.getElementById('cert-font').value = config.font || 'Times New Roman';
+                document.getElementById('font-user').value = config.fontSizeUser || 40;
+                document.getElementById('font-other').value = config.fontSizeOther || 20;
+                document.getElementById('top-name').value = config.topName || 45;
+                document.getElementById('left-name').value = config.leftName || 50;
+                document.getElementById('top-course').value = config.topCourse || 55;
+                document.getElementById('left-course').value = config.leftCourse || 50;
+                document.getElementById('top-date').value = config.topDate || 85;
+                document.getElementById('left-date').value = config.leftDate || 85;
+                
+                if(config.topCoord) document.getElementById('top-coord').value = config.topCoord;
+                if(config.leftCoord) document.getElementById('left-coord').value = config.leftCoord;
+                if(config.topInst) document.getElementById('top-inst').value = config.topInst;
+                if(config.leftInst) document.getElementById('left-inst').value = config.leftInst;
+                if(config.topSigC) document.getElementById('top-sig-c').value = config.topSigC;
+                if(config.leftSigC) document.getElementById('left-sig-c').value = config.leftSigC;
+                if(config.topSigI) document.getElementById('top-sig-i').value = config.topSigI;
+                if(config.leftSigI) document.getElementById('left-sig-i').value = config.leftSigI;
+                if(config.wSigC) document.getElementById('w-sig-c').value = config.wSigC;
+                if(config.wSigI) document.getElementById('w-sig-i').value = config.wSigI;
+            }
+
+            // Auto-llenar datos del usuario actual si no hay config o es un certificado nuevo
+            if (currentUser && currentUser.name && !document.getElementById('cert-user').value) {
+                document.getElementById('cert-user').value = currentUser.name;
+            }
+
+            // Auto-llenado desde el historial (prioridad máxima)
+            const autoFill = JSON.parse(localStorage.getItem('cert_auto_fill'));
+            if (autoFill) {
+                document.getElementById('cert-user').value = autoFill.user;
+                document.getElementById('cert-course').value = autoFill.course;
+                document.getElementById('cert-date').value = autoFill.date;
+                localStorage.removeItem('cert_auto_fill');
+            }
+
+            // Restricciones para no-admins
+            if (!isAdmin) {
+                const form = document.getElementById('cert-form');
+                form.querySelectorAll('input, select').forEach(el => el.disabled = true);
+                const saveBtn = form.querySelector('button[onclick="saveCertConfig()"]');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.style.opacity = "0.5";
+                }
+                document.querySelectorAll('.tab-btn:not([onclick*="tab-datos"])').forEach(btn => btn.style.display = 'none');
+            }
+        } catch (err) {
+            console.error("Error cargando certificado:", err);
+        } finally {
+            updatePreview();
+        }
     }
 
     function updatePreview() {
