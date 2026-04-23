@@ -121,7 +121,7 @@
             <a href="#" class="nav-item active" data-target="especialidades"><i class="fas fa-stethoscope"></i> Especialidades</a>
             <a href="#" class="nav-item" data-target="examen"><i class="fas fa-file-medical"></i> Examen</a>
             <a href="#" class="nav-item" data-target="historial"><i class="fas fa-history"></i> Historial</a>
-            <a href="certificados.html" class="nav-item" data-target="certificados"><i class="fas fa-certificate"></i> Certificados</a>
+            <a href="certificados.html" class="nav-item" data-target="diplomas"><i class="fas fa-certificate"></i> Diplomas</a>
             <a href="#" class="nav-item" data-target="Usuarios"><i class="fas fa-users"></i> Usuarios</a>
             <a href="#" class="nav-item" id="logout-link"><i class="fas fa-sign-out-alt"></i> Salir</a>
         </nav>
@@ -184,7 +184,7 @@
             </div>
             <div id="historial" class="view-section">
                 <h2>Historial de Exámenes</h2>
-                <p style="margin-bottom: 1rem;">Aquí puedes ver tus resultados y descargar certificados si aprobaste con 80 puntos o más.</p>
+                <p style="margin-bottom: 1rem;">Aquí puedes ver tus resultados y descargar diplomas si aprobaste con 80 puntos o más.</p>
                 <div id="historial-list-container"></div>
             </div>
             <div id="Usuarios" class="view-section">
@@ -225,7 +225,7 @@
             item.addEventListener('click', async (e) => {
                 const targetId = item.getAttribute('data-target');
                 if (!targetId) return;
-                if (targetId === 'certificados') return;
+                if (targetId === 'diplomas') return;
                 e.preventDefault();
                 navItems.forEach(i => i.classList.remove('active'));
                 sections.forEach(s => s.classList.remove('active'));
@@ -393,7 +393,7 @@
                         <td><span class="badge ${isPassed ? 'btn-success' : 'btn-danger'}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${isPassed ? 'Aprobado' : 'Reprobado'}</span></td>
                         <td>
                             <div style="display: flex; gap: 5px;">
-                                ${isPassed ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Certificado"><i class="fas fa-certificate"></i></button>` : ''}
+                                ${isPassed ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
                                 ${isAdmin ? `
                                     <button class="btn-action btn-warning btn-small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
                                     <button class="btn-action btn-danger btn-small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>

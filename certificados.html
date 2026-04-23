@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurar Certificado</title>
+  <title>Configurar Diploma</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -67,9 +67,7 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background-color: #ffffff;
     }
 
     .coord-group {
@@ -98,12 +96,20 @@
       pointer-events: none;
       white-space: nowrap;
       transform: translate(-50%, -50%);
+      color: #1e293b;
+      font-weight: bold;
+      z-index: 10;
     }
 
     #bg-image {
-      width: 100%;
-      height: 100%;
-      object-fit: fill;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: fill !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      display: block;
     }
     
     @media print {
@@ -130,7 +136,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Configurar Certificado</h1>
+    <h1>Configurar Diploma</h1>
     <nav class="nav"><a href="panel_principal.html">← Volver al Panel</a></nav>
     
     <form id="cert-form">
@@ -222,13 +228,13 @@
       </div>
 
       <button type="button" onclick="saveCertConfig()" style="background: #2563eb; color: white; grid-column: 1 / -1;">💾 Guardar Configuración</button>
-      <button type="button" onclick="window.print()" class="btn-success" style="background: #10b981; color: white; grid-column: 1 / -1; margin-top: -0.5rem;">🖨️ Imprimir Certificado</button>
+      <button type="button" onclick="window.print()" class="btn-success" style="background: #10b981; color: white; grid-column: 1 / -1; margin-top: -0.5rem;">🖨️ Imprimir Diploma</button>
     </form>
 
-    <h2>Vista Previa del Certificado</h2>
+    <h2>Vista Previa del Diploma</h2>
     <div class="certificate-preview" id="cert-preview">
         <!-- Imagen de fondo real -->
-        <img src="Certificados/cert_1.png" alt="Plantilla" id="bg-image" onerror="this.src='certificados/cert_1.png'">
+        <img src="diplomas/cert_1.png" alt="Plantilla" id="bg-image" onerror="this.src='diplomas/cert_1.png'" onload="updatePreview()">
         
         <!-- Campos superpuestos -->
         <div id="prev-name" class="cert-field-preview">NOMBRE DEL USUARIO</div>
@@ -486,6 +492,7 @@
             elSigC.style.top = topSigC + "%";
             elSigC.style.left = leftSigC + "%";
             elSigC.style.width = wSigC + "px";
+            elSigC.style.zIndex = "11";
         }
         if (signatureInst) {
             elSigI.src = signatureInst;
@@ -493,6 +500,7 @@
             elSigI.style.top = topSigI + "%";
             elSigI.style.left = leftSigI + "%";
             elSigI.style.width = wSigI + "px";
+            elSigI.style.zIndex = "11";
         }
     }
 
