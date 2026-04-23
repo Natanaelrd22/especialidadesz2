@@ -204,20 +204,7 @@
         <img src="diplomas/cert_1.png" 
              alt="Plantilla" 
              id="bg-image" 
-             onerror="
-                console.warn('Fallo al cargar:', this.src);
-                if (this.src.includes('diplomas/')) { this.src='Diplomas/cert_1.png'; }
-                else if (this.src.includes('Diplomas/')) { this.src='Certificados/cert_1.png'; }
-                else if (this.src.includes('Certificados/')) { this.src='certificados/cert_1.png'; }
-                else if (this.src.includes('certificados/')) { this.src='diplomas/cert_1.PNG'; }
-                else if (this.src.includes('.PNG')) { this.src='diploma/cert_1.png'; }
-                else if (this.src.includes('diploma/')) { this.src='Diploma/cert_1.png'; }
-                else { 
-                    this.onerror=null; 
-                    this.src='https://placehold.co/1000x700?text=Error+al+cargar+plantilla'; 
-                    console.error('No se encontró la plantilla en ninguna ruta conocida.');
-                }
-             " 
+             onerror="handleImageError(this)" 
              onload="updatePreview()">
         
         <!-- Campos superpuestos -->
@@ -239,6 +226,26 @@
 
     let signatureCoord = null;
     let signatureInst = null;
+
+    // Función robusta para manejar fallos de carga de imagen por case-sensitivity
+    function handleImageError(img) {
+        const attempts = [
+            'diplomas/cert_1.png',
+            'Diplomas/cert_1.png',
+            'diplomas/cert_1.PNG',
+            'Certificados/cert_1.png',
+            'certificados/cert_1.png'
+        ];
+        
+        const currentIdx = attempts.findIndex(path => img.src.endsWith(path));
+        if (currentIdx !== -1 && currentIdx < attempts.length - 1) {
+            console.warn(`404 en ${attempts[currentIdx]}, intentando: ${attempts[currentIdx + 1]}`);
+            img.src = attempts[currentIdx + 1];
+        } else {
+            img.onerror = null;
+            img.src = 'https://placehold.co/1000x700?text=Error+Plantilla+No+Encontrada';
+        }
+    }
 
     function openTab(evt, tabName) {
       // Desactivar todos los paneles de forma segura

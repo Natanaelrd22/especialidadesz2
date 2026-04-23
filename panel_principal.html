@@ -300,7 +300,7 @@
                         <td><span class="badge ${isPassed ? 'btn-success' : 'btn-danger'}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${isPassed ? 'Aprobado' : 'Reprobado'}</span></td>
                         <td>
                             <div style="display: flex; gap: 5px;">
-                                ${isPassed && res.exams ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
+                                ${isPassed && res.exams ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name.replace(/'/g, "\\'")}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
                                 ${isAdmin ? `
                                     <button class="btn-action btn-warning btn-small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
                                     <button class="btn-action btn-danger btn-small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>
