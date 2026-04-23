@@ -45,10 +45,16 @@
                     <div id="specialties-list" class="exams-grid"></div>
                 </div>
                 <div id="exam-player" style="display: none;">
-                    <button class="btn-action btn-secondary btn-small" onclick="closeExamPlayer()" style="width: auto; margin-bottom: 1.5rem !important;"><i class="fas fa-arrow-left"></i> Volver a especialidades</button>
-                    <h2 id="player-title">Nombre del Examen</h2>
-                    <div id="player-questions" style="margin-top: 2rem;"></div>
-                    <button class="btn-action btn-primary" onclick="evaluateExam()" style="margin-top: 2rem; width: 100%;">Finalizar y Obtener Resultado</button>
+                    <=""t"m
+                    <div class="progress-container">
+                        <div id="exam-progress" class="progress-bar"></div>
+                    </div>
+                    <div id="player-questions"></div>
+                    <div class="player-footer">
+                        <button id="prev-btn" class="btn btn--secondary" onclick="prevQuestion()" style="visibility: hidden;"><i class="fas fa-chevron-left"></i> Anterior</button>
+                        <button id="next-btn" class="btn btn--primary" onclick="nextQuestion()">Siguiente <i class="fas fa-chevron-right"></i></button>
+                        <button id="finish-btn" class="btn btn--success" onclick="evaluateExam()" style="display: none;">Finalizar Examen <i class="fas fa-check-circle"></i></button>
+                    </div>
                 </div>
             </div>
             <div id="examen" class="view-section">
@@ -151,6 +157,8 @@
         }
 
         let savedExams = []; // Variable global para los exámenes de la DB
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
 
         async function renderExams() {
             const list = document.getElementById('exams-list');
@@ -210,26 +218,80 @@
         }
         function startExam(index) {
             currentPlayingIndex = index;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            
             const exam = savedExams[index];
             document.getElementById('specialties-view').style.display = 'none';
             document.getElementById('exam-player').style.display = 'block';
             document.getElementById('player-title').innerText = exam.name;
-            const container = document.getElementById('player-questions');
-            container.innerHTML = exam.questions.map((q, i) => `
-                <div class="question-builder" style="border-style: solid; border-color: #e2e8f0; margin-bottom: 2rem;">
-                    <p><strong>${i + 1}. ${q.text}</strong></p>
-                    <div style="margin-top: 1rem;">
-                        ${q.options.map((opt, optIdx) => `<label class="option-label"><input type="radio" name="question${i}" value="${String.fromCharCode(65 + optIdx)}"> ${opt}</label>`).join('')}
-                    </div>
-                </div>`).join('');
+            
+            renderCurrentQuestion();
         }
+
+        function renderCurrentQuestion() {
+            const exam = savedExams[currentPlayingIndex];
+            const q = exam.questions[currentQuestionIndex];
+            const total = exam.questions.length;
+            
+            // Actualizar contador y progreso
+            document.getElementById('question-counter').innerText = `${currentQuestionIndex + 1} / ${total}`;
+            const progress = ((currentQuestionIndex + 1) / total) * 100;
+            document.getElementById('exam-progress').style.width = `${progress}%`;
+            
+            // Renderizar tarjeta de pregunta
+            const container = document.getElementById('player-questions');
+            container.innerHTML = `
+                <div class="question-card">
+                    <p class="question-text">${q.text}</p>
+                    <div class="options-list">
+                        ${q.opt
+                            const len class="option-prefix">${letter}</span>
+                                    <span>${opt}</span>
+                                </label>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Gestionar visibilidad de botones
+            document.getElementById('prev-btn').style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+            if (currentQuestionIndex === total - 1) {
+                document.getElementById('next-btn').style.display = 'none';
+                document.getElementById('finish-btn').style.display = 'inline-flex';
+se {                documetById('next-btn').style.display = 'inline-flex';
+                document.getElementById('finish-btn').style.display = 'none';
+            }
+        }
+
+        function selectOption(letter, element) {
+            userAnswers[currentQuestionIndex] = letter;
+            // Actualización visual inmediata sin re-renderizar todo
+            document.querySelectorAll('.option-card').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < savedExams[currentPlayingIndex].questions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
+        }
+
         async function evaluateExam() {
             const exam = savedExams[currentPlayingIndex];
             let correctAnswers = 0;
             const totalQuestions = exam.questions.length;
             exam.questions.forEach((q, i) => {
-                const selected = document.querySelector(`input[name="question${i}"]:checked`);
-                if (selected && selected.value === q.correct) correctAnswers++;
+                if (userAnswers[i] === q.correct) correctAnswers++;
             });
             const finalScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
             
@@ -238,9 +300,7 @@
             userAttempts[examId] = (userAttempts[examId] || 0) + 1;
             localStorage.setItem('z2_user_attempts', JSON.stringify(userAttempts));
             
-            // Guardar resultado en Supabase
-            const { error } = await _supabase.from('exam_results').insert([{
-                user_id: currentUser.id,
+            // Guardar resultado en Supabaser
                 exam_id: examId,
                 score: finalScore,
                 date: new Date().toISOString()

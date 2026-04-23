@@ -356,3 +356,107 @@ body {
     .content-card { box-shadow: none !important; }
     button:not(.btn-print) { display: none !important; }
 }
+
+/* Estética del Reproductor de Exámenes */
+.exam-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.progress-container {
+    width: 100%;
+    height: 10px;
+    background: var(--border-light);
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary-color);
+    width: 0%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.question-card {
+    background: var(--white);
+    padding: 2rem;
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+
+.question-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--secondary-color);
+    line-height: 1.4;
+}
+
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.option-card {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--white);
+}
+
+.option-card:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-light);
+}
+
+.option-card.selected {
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.option-card input[type="radio"] {
+    display: none;
+}
+
+.option-prefix {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--bg-lighter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1.25rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+
+.option-card.selected .option-prefix {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.player-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+}
