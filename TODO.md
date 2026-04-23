@@ -14,6 +14,7 @@ Approved plan: Security/UX fixes, extract CSS, add cert download, etc.
 - [x] Step 7: Complete updates - Admin access fixed (Plain text vs Hash mismatch resolved)
 - [x] Step 8: Rename folder 'Certificados' to 'diplomas' and update UI labels
 - [x] Step 9: Final deployment and folder case-sensitivity fix
+- [x] Step 10: Robust image fallback chain and historial UI improvements
 
 ## Previous Tasks
 ### Task: Fix 404 error for zona2.png image

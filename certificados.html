@@ -205,9 +205,10 @@
              alt="Plantilla" 
              id="bg-image" 
              onerror="
-                if (this.src.includes('diplomas/')) this.src='Diplomas/cert_1.png';
-                else if (this.src.includes('Diplomas/')) this.src='Certificados/cert_1.png';
-                this.onerror=null;
+                if (this.src.includes('diplomas/')) { this.src='Diplomas/cert_1.png'; }
+                else if (this.src.includes('Diplomas/')) { this.src='Certificados/cert_1.png'; }
+                else if (this.src.includes('Certificados/')) { this.src='certificados/cert_1.png'; }
+                else { this.onerror=null; this.src='https://via.placeholder.com/1000x700?text=Error+al+cargar+plantilla'; }
              " 
              onload="updatePreview()">
         

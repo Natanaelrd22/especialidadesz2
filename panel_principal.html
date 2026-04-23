@@ -289,17 +289,18 @@
 
             results.forEach((res, index) => {
                 const isPassed = res.score >= 80;
+                const examName = res.exams ? res.exams.name : 'Examen Eliminado';
                 
                 html += `
                     <tr>
-                        <td>${res.exams.name}</td>
+                        <td>${examName}</td>
                         ${isAdmin ? `<td><small>${res.user_id.substring(0,8)}...</small></td>` : ''}
                         <td>${new Date(res.date).toLocaleDateString()}</td>
                         <td>${res.score}/100</td>
                         <td><span class="badge ${isPassed ? 'btn-success' : 'btn-danger'}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${isPassed ? 'Aprobado' : 'Reprobado'}</span></td>
                         <td>
                             <div style="display: flex; gap: 5px;">
-                                ${isPassed ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
+                                ${isPassed && res.exams ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
                                 ${isAdmin ? `
                                     <button class="btn-action btn-warning btn-small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
                                     <button class="btn-action btn-danger btn-small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>
