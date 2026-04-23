@@ -45,7 +45,11 @@
                     <div id="specialties-list" class="exams-grid"></div>
                 </div>
                 <div id="exam-player" style="display: none;">
-                    <=""t"m
+                    <div class="exam-player-header">
+                        <button class="btn btn--secondary btn--small" onclick="closeExamPlayer()"><i class="fas fa-arrow-left"></i> Salir</button>
+                        <h2 id="player-title" style="margin: 0;">Nombre del Examen</h2>
+                        <span id="question-counter" class="badge btn--secondary">1 / 10</span>
+                    </div>
                     <div class="progress-container">
                         <div id="exam-progress" class="progress-bar"></div>
                     </div>
@@ -245,8 +249,13 @@
                 <div class="question-card">
                     <p class="question-text">${q.text}</p>
                     <div class="options-list">
-                        ${q.opt
-                            const len class="option-prefix">${letter}</span>
+                        ${q.options.map((opt, i) => {
+                            const letter = String.fromCharCode(65 + i);
+                            const isSelected = userAnswers[currentQuestionIndex] === letter;
+                            return `
+                                <label class="option-card ${isSelected ? 'selected' : ''}" onclick="selectOption('${letter}', this)">
+                                    <input type="radio" name="currentQuestion" value="${letter}" ${isSelected ? 'checked' : ''}>
+                                    <span class="option-prefix">${letter}</span>
                                     <span>${opt}</span>
                                 </label>
                             `;
@@ -260,7 +269,8 @@
             if (currentQuestionIndex === total - 1) {
                 document.getElementById('next-btn').style.display = 'none';
                 document.getElementById('finish-btn').style.display = 'inline-flex';
-se {                documetById('next-btn').style.display = 'inline-flex';
+            } else {
+                document.getElementById('next-btn').style.display = 'inline-flex';
                 document.getElementById('finish-btn').style.display = 'none';
             }
         }
@@ -300,7 +310,9 @@ se {                documetById('next-btn').style.display = 'inline-flex';
             userAttempts[examId] = (userAttempts[examId] || 0) + 1;
             localStorage.setItem('z2_user_attempts', JSON.stringify(userAttempts));
             
-            // Guardar resultado en Supabaser
+            // Guardar resultado en Supabase
+            const { error } = await _supabase.from('exam_results').insert([{
+                user_id: currentUser.id,
                 exam_id: examId,
                 score: finalScore,
                 date: new Date().toISOString()
