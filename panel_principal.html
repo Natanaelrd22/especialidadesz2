@@ -184,7 +184,7 @@
                 savedExams.forEach((exam, index) => {
                 const card = document.createElement('div');
                 card.className = 'exam-card';
-                const logoContent = exam.logo ? `<img src="${exam.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-stethoscope"></i>`;
+                const logoContent = isLogoValid ? `<img src="${exam.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-stethoscope"></i>`;
                 card.innerHTML = `
                     <div class="exam-card-header">
                         <div class="exam-card-logo">${logoContent}</div>
@@ -215,7 +215,7 @@
                 
                 const card = document.createElement('div');
                 card.className = 'exam-card';
-                const logo = exam.logo ? `<img src="${exam.logo}">` : `<i class="fas fa-stethoscope"></i>`;
+                const logo = isLogoValid ? `<img src="${exam.logo}">` : `<i class="fas fa-stethoscope"></i>`;
                 card.innerHTML = `
                     <div class="exam-card-header">
                         <div class="exam-card-logo">${logo}</div>
