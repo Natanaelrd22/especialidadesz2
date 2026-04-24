@@ -78,9 +78,9 @@
                     </div>
                     <div id="questions-container"></div>
                     <div style="display: flex; gap: 1rem;">
-                        <button type="button" class="btn-action btn-secondary" onclick="addQuestion()"><i class="fas fa-plus"></i> Añadir Pregunta</button>
-                        <button type="submit" id="submit-btn" class="btn-action btn-primary" style="margin-top: 1rem;">Guardar Examen Completo</button>
-                        <button type="button" id="cancel-edit-btn" class="btn-action btn-danger" style="margin-top: 1rem; display: none;" onclick="resetForm()">Cancelar</button>
+                        <button type="button" class="btn btn--secondary" onclick="addQuestion()"><i class="fas fa-plus"></i> Añadir Pregunta</button>
+                        <button type="submit" id="submit-btn" class="btn btn--primary" style="margin-top: 1rem;">Guardar Examen Completo</button>
+                        <button type="button" id="cancel-edit-btn" class="btn btn--danger" style="margin-top: 1rem; display: none;" onclick="resetForm()">Cancelar</button>
                     </div>
                 </form>
                 <template id="question-template">
@@ -210,13 +210,16 @@
                 const isBtnDisabled = attemptsTaken >= maxAttempts;
                 const card = document.createElement('div');
                 card.className = 'exam-card';
-                const logo = exam.logo ? `<img src="${exam.logo}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-stethoscope"></i>`;
+                const logo = exam.logo ? `<img src="${exam.logo}">` : `<i class="fas fa-stethoscope"></i>`;
                 card.innerHTML = `
                     <div class="exam-card-header">
                         <div class="exam-card-logo">${logo}</div>
-                        <div><h4>${exam.name}</h4><p>${exam.questions.length} preguntas • Intentos: ${attemptsTaken}/${maxAttempts}</p></div>
+                        <div class="exam-info">
+                            <h4>${exam.name}</h4>
+                            <p>${exam.questions.length} preguntas • Intentos: ${attemptsTaken}/${maxAttempts}</p>
+                        </div>
                     </div>
-                    <button class="btn-action ${isBtnDisabled ? 'btn-secondary' : 'btn-primary'} btn-small" onclick="${isBtnDisabled ? '' : `startExam(${originalIndex})`}" ${isBtnDisabled ? 'disabled' : ''}>${isBtnDisabled ? 'Intentos Agotados' : 'Tomar Examen'}</button>`;
+                    <button class="btn ${isBtnDisabled ? 'btn--secondary' : 'btn--primary'} btn--small" onclick="${isBtnDisabled ? '' : `startExam(${originalIndex})`}" ${isBtnDisabled ? 'disabled' : ''}>${isBtnDisabled ? 'Intentos Agotados' : 'Tomar Examen'}</button>`;
                 list.appendChild(card);
             });
         }
@@ -386,10 +389,10 @@
                         <td><span class="badge ${isPassed ? 'btn-success' : 'btn-danger'}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${isPassed ? 'Aprobado' : 'Reprobado'}</span></td>
                         <td>
                             <div style="display: flex; gap: 5px;">
-                                ${isPassed && res.exams ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name.replace(/'/g, "\\'")}', '${(res.users ? res.users.name : currentUser.name).replace(/'/g, "\\'")}', '${res.date}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
+                                ${isPassed && res.exams ? `<button class="btn btn--success btn--small" onclick="generateCertFromHistorial('${res.exams.name.replace(/'/g, "\\'")}', '${(res.users ? res.users.name : currentUser.name).replace(/'/g, "\\'")}', '${res.date}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
                                 ${isAdmin ? `
-                                    <button class="btn-action btn-warning btn-small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-action btn-danger btn-small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn--warning btn--small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn--danger btn--small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>
                                 ` : (!isPassed ? '-' : '')}
                             </div>
                         </td>
@@ -460,10 +463,10 @@
                     } else {
                         actionsHTML = `
                             <td>
-                                <button class="btn-action ${user.blocked ? 'btn-success' : 'btn-warning'} btn-small" onclick="toggleBlockUser('${user.email}')" title="${user.blocked ? 'Desbloquear' : 'Bloquear'}">
+                                <button class="btn ${user.blocked ? 'btn--success' : 'btn--warning'} btn--small" onclick="toggleBlockUser('${user.email}')" title="${user.blocked ? 'Desbloquear' : 'Bloquear'}">
                                     <i class="fas ${user.blocked ? 'fa-unlock' : 'fa-user-slash'}"></i>
                                 </button>
-                                <button class="btn-action btn-danger btn-small" onclick="deleteUser('${user.email}')" title="Eliminar">
+                                <button class="btn btn--danger btn--small" onclick="deleteUser('${user.email}')" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -606,6 +609,17 @@
         }
         init();
 
+        // Lógica para cerrar sesión
+        document.getElementById('logout-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('¿Desea cerrar su sesión y regresar al inicio?')) {
+                localStorage.removeItem('z2_current_user');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>
         // Lógica para cerrar sesión
         document.getElementById('logout-link').addEventListener('click', (e) => {
             e.preventDefault();
