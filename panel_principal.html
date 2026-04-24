@@ -73,9 +73,6 @@
                             <input type="file" id="spec-logo" accept="image/*">
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group"><label for="spec-attempts">Número Máximo de Intentos</label><input type="number" id="spec-attempts" min="1" value="1" required></div>
-                    </div>
                     <div id="questions-container"></div>
                     <div style="display: flex; gap: 1rem;">
                         <button type="button" class="btn btn--secondary" onclick="addQuestion()"><i class="fas fa-plus"></i> Añadir Pregunta</button>
@@ -183,7 +180,7 @@
                 card.innerHTML = `
                     <div class="exam-card-header">
                         <div class="exam-card-logo">${logoContent}</div>
-                        <div><h4>${exam.name}</h4><p>${exam.questions.length} Preguntas • Max ${exam.maxAttempts || 1} intentos</p></div>
+                        <div><h4>${exam.name}</h4><p>${exam.questions.length} Preguntas • 1 intento permitido</p></div>
                     </div>
                     <div class="card-actions">
                         <button class="btn-action btn-secondary btn-small" onclick="viewExamDetails(${index})"><i class="fas fa-eye"></i></button>
@@ -206,7 +203,7 @@
                 const originalIndex = savedExams.indexOf(exam);
                 const examId = exam.id || `exam_${originalIndex}`;
                 const attemptsTaken = userAttempts[examId] || 0;
-                const maxAttempts = exam.maxAttempts || 1;
+                const maxAttempts = 1; // Forzamos 1 intento por usuario
                 const isBtnDisabled = attemptsTaken >= maxAttempts;
                 const card = document.createElement('div');
                 card.className = 'exam-card';
@@ -405,8 +402,9 @@
 
         window.deleteHistorialEntry = async function(id) {
             if (confirm('¿Estás seguro de que deseas eliminar este registro del historial?')) {
-                await _supabase.from('exam_results').delete().eq('id', id);
-                renderHistorial();
+                const { error } = await _supabase.from('exam_results').delete().eq('id', id);
+                if (error) alert('Error al eliminar: ' + error.message);
+                await renderHistorial();
             }
         };
 
@@ -416,8 +414,9 @@
             if (newScore !== null && newScore !== "" && !isNaN(newScore)) {
                 const scoreInt = parseInt(newScore);
                 if (scoreInt >= 0 && scoreInt <= 100) {
-                    await _supabase.from('exam_results').update({ score: scoreInt }).eq('id', id);
-                    renderHistorial();
+                    const { error } = await _supabase.from('exam_results').update({ score: scoreInt }).eq('id', id);
+                    if (error) alert('Error al actualizar: ' + error.message);
+                    await renderHistorial();
                 } else {
                     alert('Por favor ingrese un valor entre 0 y 100.');
                 }
@@ -463,10 +462,10 @@
                     } else {
                         actionsHTML = `
                             <td>
-                                <button class="btn ${user.blocked ? 'btn--success' : 'btn--warning'} btn--small" onclick="toggleBlockUser('${user.email}')" title="${user.blocked ? 'Desbloquear' : 'Bloquear'}">
+                                <button class="btn ${user.blocked ? 'btn--success' : 'btn--warning'} btn--small" onclick="toggleBlockUser('${user.id}')" title="${user.blocked ? 'Desbloquear' : 'Bloquear'}">
                                     <i class="fas ${user.blocked ? 'fa-unlock' : 'fa-user-slash'}"></i>
                                 </button>
-                                <button class="btn btn--danger btn--small" onclick="deleteUser('${user.email}')" title="Eliminar">
+                                <button class="btn btn--danger btn--small" onclick="deleteUser('${user.id}')" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -487,24 +486,28 @@
             container.innerHTML = html;
         }
 
-        window.deleteUser = async function(email) {
+        window.deleteUser = async function(id) {
             if (confirm('¿Estás seguro de que deseas eliminar permanentemente a este usuario?')) {
-                const { error } = await _supabase.from('users').delete().eq('email', email);
+                const { error } = await _supabase.from('users').delete().eq('id', id);
                 if (error) {
                     console.error('Error al eliminar:', error);
                     alert('No se pudo eliminar el usuario.\n\nPosibles causas:\n1. Falta política de DELETE en Supabase.\n2. El usuario tiene exámenes realizados (Historial) que bloquean el borrado.\n\nError técnico: ' + error.message);
                 } else {
+                    // Refrescar la lista antes del alert para que el cambio sea visible inmediatamente
+                    await renderUsers();
                     alert('Usuario eliminado correctamente.');
-                    renderUsers();
                 }
             }
         };
 
-        window.toggleBlockUser = async function(email) {
-            const { data: user } = await _supabase.from('users').select('blocked').eq('email', email).single();
+        window.toggleBlockUser = async function(id) {
+            const { data: user, error: fetchError } = await _supabase.from('users').select('blocked').eq('id', id).single();
+            if (fetchError) return alert('Error al obtener usuario: ' + fetchError.message);
+            
             if (user) {
-                await _supabase.from('users').update({ blocked: !user.blocked }).eq('email', email);
-                renderUsers();
+                const { error } = await _supabase.from('users').update({ blocked: !user.blocked }).eq('id', id);
+                if (error) alert('Error al bloquear: ' + error.message);
+                await renderUsers();
             }
         };
 
@@ -521,7 +524,6 @@
             editingIndex = index;
             const exam = savedExams[index];
             document.getElementById('spec-name').value = exam.name;
-            document.getElementById('spec-attempts').value = exam.maxAttempts || 1;
             document.getElementById('questions-container').innerHTML = '';
             exam.questions.forEach(q => {
                 addQuestion();
@@ -563,7 +565,7 @@
         document.getElementById('create-exam-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('spec-name').value;
-            const maxAttempts = parseInt(document.getElementById('spec-attempts').value) || 1;
+            const maxAttempts = 1; // Valor fijo de 1 intento por política del portal
             const logoInput = document.getElementById('spec-logo');
             const questionNodes = document.querySelectorAll('.question-builder');
             const questions = Array.from(questionNodes).map(node => {
