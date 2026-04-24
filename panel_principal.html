@@ -489,8 +489,14 @@
 
         window.deleteUser = async function(email) {
             if (confirm('¿Estás seguro de que deseas eliminar permanentemente a este usuario?')) {
-                await _supabase.from('users').delete().eq('email', email);
-                renderUsers();
+                const { error } = await _supabase.from('users').delete().eq('email', email);
+                if (error) {
+                    console.error('Error al eliminar:', error);
+                    alert('No se pudo eliminar el usuario.\n\nPosibles causas:\n1. Falta política de DELETE en Supabase.\n2. El usuario tiene exámenes realizados (Historial) que bloquean el borrado.\n\nError técnico: ' + error.message);
+                } else {
+                    alert('Usuario eliminado correctamente.');
+                    renderUsers();
+                }
             }
         };
 
