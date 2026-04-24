@@ -47,6 +47,7 @@
                     <div class="exam-player-header">
                         <button class="btn btn--secondary btn--small" onclick="closeExamPlayer()"><i class="fas fa-arrow-left"></i> Salir</button>
                         <h2 id="player-title" style="margin: 0;">Nombre del Examen</h2>
+                        <span id="timer-display" class="badge btn--danger" style="min-width: 80px;"><i class="fas fa-clock"></i> 00:00</span>
                         <span id="question-counter" class="badge btn--secondary">1 / 10</span>
                     </div>
                     <div class="progress-container">
@@ -69,9 +70,13 @@
                             <input type="text" id="spec-name" placeholder="Ej: Cardiología" required>
                         </div>
                         <div class="form-group">
-                            <label for="spec-logo">Logo de la Especialidad</label>
-                            <input type="file" id="spec-logo" accept="image/*">
+                            <label for="spec-time">Tiempo Límite (minutos)</label>
+                            <input type="number" id="spec-time" min="1" value="30" required>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="spec-logo">Logo de la Especialidad</label>
+                        <input type="file" id="spec-logo" accept="image/*">
                     </div>
                     <div id="questions-container"></div>
                     <div style="display: flex; gap: 1rem;">
@@ -160,6 +165,8 @@
         let currentQuestionIndex = 0;
         let userAnswers = {};
         let autoNextTimeout = null;
+        let examTimer = null;
+        let timeRemaining = 0;
 
         async function renderExams() {
             const list = document.getElementById('exams-list');
@@ -180,7 +187,7 @@
                 card.innerHTML = `
                     <div class="exam-card-header">
                         <div class="exam-card-logo">${logoContent}</div>
-                        <div><h4>${exam.name}</h4><p>${exam.questions.length} Preguntas • 1 intento permitido</p></div>
+                        <div><h4>${exam.name}</h4><p>${exam.questions.length} Preguntas • Tiempo: ${exam.time_limit || 30} min</p></div>
                     </div>
                     <div class="card-actions">
                         <button class="btn-action btn-secondary btn-small" onclick="viewExamDetails(${index})"><i class="fas fa-eye"></i></button>
@@ -202,9 +209,9 @@
             activeExams.forEach((exam) => {
                 const originalIndex = savedExams.indexOf(exam);
                 const examId = exam.id || `exam_${originalIndex}`;
-                const attemptsTaken = userAttempts[examId] || 0;
-                const maxAttempts = 1; // Forzamos 1 intento por usuario
-                const isBtnDisabled = attemptsTaken >= maxAttempts;
+                // Inhabilitar si ya tiene un registro de intento (independientemente de si terminó o se agotó el tiempo)
+                const isCompleted = userAttempts[examId] > 0;
+                
                 const card = document.createElement('div');
                 card.className = 'exam-card';
                 const logo = exam.logo ? `<img src="${exam.logo}">` : `<i class="fas fa-stethoscope"></i>`;
@@ -213,10 +220,10 @@
                         <div class="exam-card-logo">${logo}</div>
                         <div class="exam-info">
                             <h4>${exam.name}</h4>
-                            <p>${exam.questions.length} preguntas • Intentos: ${attemptsTaken}/${maxAttempts}</p>
+                            <p>${exam.questions.length} preguntas • Tiempo: ${exam.time_limit || 30} min</p>
                         </div>
                     </div>
-                    <button class="btn ${isBtnDisabled ? 'btn--secondary' : 'btn--primary'} btn--small" onclick="${isBtnDisabled ? '' : `startExam(${originalIndex})`}" ${isBtnDisabled ? 'disabled' : ''}>${isBtnDisabled ? 'Intentos Agotados' : 'Tomar Examen'}</button>`;
+                    <button class="btn ${isCompleted ? 'btn--secondary' : 'btn--primary'} btn--small" onclick="${isCompleted ? '' : `startExam(${originalIndex})`}" ${isCompleted ? 'disabled' : ''}>${isCompleted ? 'Examen Finalizado' : 'Tomar Examen'}</button>`;
                 list.appendChild(card);
             });
         }
@@ -230,7 +237,30 @@
             document.getElementById('exam-player').style.display = 'block';
             document.getElementById('player-title').innerText = exam.name;
             
+            // Inicializar Temporizador
+            timeRemaining = (exam.time_limit || 30) * 60;
+            startTimer();
             renderCurrentQuestion();
+        }
+
+        function startTimer() {
+            if (examTimer) clearInterval(examTimer);
+            updateTimerDisplay();
+            examTimer = setInterval(() => {
+                timeRemaining--;
+                if (timeRemaining <= 0) {
+                    clearInterval(examTimer);
+                    alert("¡Atención! El tiempo se ha agotado. El examen se evaluará con las respuestas marcadas hasta ahora.");
+                    evaluateExam();
+                }
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const min = Math.floor(timeRemaining / 60);
+            const sec = timeRemaining % 60;
+            document.getElementById('timer-display').innerHTML = `<i class="fas fa-clock"></i> ${min}:${sec < 10 ? '0' : ''}${sec}`;
         }
 
         function renderCurrentQuestion() {
@@ -310,6 +340,7 @@
         }
 
         async function evaluateExam() {
+            if (examTimer) clearInterval(examTimer);
             const exam = savedExams[currentPlayingIndex];
             let correctAnswers = 0;
             const totalQuestions = exam.questions.length;
@@ -339,6 +370,7 @@
         }
         function closeExamPlayer() {
             if (autoNextTimeout) clearTimeout(autoNextTimeout);
+            if (examTimer) clearInterval(examTimer);
             document.getElementById('specialties-view').style.display = 'block';
             document.getElementById('exam-player').style.display = 'none';
         }
@@ -524,6 +556,7 @@
             editingIndex = index;
             const exam = savedExams[index];
             document.getElementById('spec-name').value = exam.name;
+            document.getElementById('spec-time').value = exam.time_limit || 30;
             document.getElementById('questions-container').innerHTML = '';
             exam.questions.forEach(q => {
                 addQuestion();
@@ -565,7 +598,7 @@
         document.getElementById('create-exam-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('spec-name').value;
-            const maxAttempts = 1; // Valor fijo de 1 intento por política del portal
+            const time_limit = parseInt(document.getElementById('spec-time').value) || 30;
             const logoInput = document.getElementById('spec-logo');
             const questionNodes = document.querySelectorAll('.question-builder');
             const questions = Array.from(questionNodes).map(node => {
@@ -577,7 +610,7 @@
                 name, 
                 questions, 
                 logo: null, 
-                maxAttempts, 
+                time_limit, 
                 active: editingIndex !== null ? savedExams[editingIndex].active : false 
             };
             // Solo incluir ID si estamos editando
