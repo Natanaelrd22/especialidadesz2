@@ -620,14 +620,3 @@
     </script>
 </body>
 </html>
-        // Lógica para cerrar sesión
-        document.getElementById('logout-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            if (confirm('¿Desea cerrar su sesión y regresar al inicio?')) {
-                localStorage.removeItem('z2_current_user');
-                window.location.href = 'index.html';
-            }
-        });
-    </script>
-</body>
-</html>
