@@ -346,7 +346,7 @@
         async function renderHistorial() {
             const container = document.getElementById('historial-list-container');
             
-            let query = _supabase.from('exam_results').select('*, exams(name)');
+            let query = _supabase.from('exam_results').select('*, exams(name), users(name)');
             if (!isAdmin) {
                 query = query.eq('user_id', currentUser.id);
             }
@@ -386,7 +386,7 @@
                         <td><span class="badge ${isPassed ? 'btn-success' : 'btn-danger'}" style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${isPassed ? 'Aprobado' : 'Reprobado'}</span></td>
                         <td>
                             <div style="display: flex; gap: 5px;">
-                                ${isPassed && res.exams ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name.replace(/'/g, "\\'")}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
+                                ${isPassed && res.exams ? `<button class="btn-action btn-success btn-small" onclick="generateCertFromHistorial('${res.exams.name.replace(/'/g, "\\'")}', '${(res.users ? res.users.name : currentUser.name).replace(/'/g, "\\'")}', '${res.date}')" title="Ver Diploma"><i class="fas fa-certificate"></i></button>` : ''}
                                 ${isAdmin ? `
                                     <button class="btn-action btn-warning btn-small" onclick="editHistorialEntry('${res.id}', ${res.score})" title="Editar Puntaje"><i class="fas fa-edit"></i></button>
                                     <button class="btn-action btn-danger btn-small" onclick="deleteHistorialEntry('${res.id}')" title="Eliminar Registro"><i class="fas fa-trash"></i></button>
@@ -421,11 +421,11 @@
             }
         };
 
-        function generateCertFromHistorial(examName) {
+        function generateCertFromHistorial(examName, userName, resultDate) {
             localStorage.setItem('cert_auto_fill', JSON.stringify({
-                user: currentUser.name,
+                user: userName || currentUser.name,
                 course: examName,
-                date: new Date().toISOString().split('T')[0]
+                date: resultDate ? new Date(resultDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
             }));
             window.location.href = 'certificados.html';
         }
