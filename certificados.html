@@ -78,6 +78,37 @@
       z-index: 1;
       display: block;
     }
+
+    /* Mejoras para el Selector de Diseño Visual */
+    .design-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 5px;
+      grid-column: 1 / -1;
+    }
+    .design-item {
+      aspect-ratio: 1.414/1;
+      border: 3px solid transparent;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .design-item:hover { transform: scale(1.02); border-color: #cbd5e1; }
+    .design-item.active { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+    .design-item img { width: 100%; height: 100%; object-fit: cover; }
+    .design-item.disabled { cursor: not-allowed; opacity: 0.7; pointer-events: none; }
     
     @media print {
       @page {
@@ -136,6 +167,11 @@
             <option value="Georgia">Georgia</option>
           </select>
         </label>
+        <div style="grid-column: 1 / -1;">
+          <label style="font-weight: 600; color: #64748b; font-size: 0.875rem;">Seleccionar Modelo de Diploma:</label>
+          <div id="design-picker-container" class="design-grid"></div>
+          <input type="hidden" id="cert-design" value="Cert_1.png">
+        </div>
         <label>Tamaño Nombre (px): <input type="number" id="font-user" value="40" oninput="updatePreview()"></label>
         <label>Tamaño Otros (px): <input type="number" id="font-other" value="20" oninput="updatePreview()"></label>
       </div>
@@ -205,7 +241,7 @@
              alt="Plantilla" 
              id="bg-image" 
              onerror="handleImageError(this)" 
-             onload="updatePreview()">
+             data-original-filename="Cert_1.png">
         
         <!-- Campos superpuestos -->
         <div id="prev-name" class="cert-field-preview">NOMBRE DEL USUARIO</div>
@@ -227,29 +263,71 @@
     let signatureCoord = null;
     let signatureInst = null;
 
-    // Función robusta para manejar fallos de carga de imagen por case-sensitivity
-    function handleImageError(img) {
-        const attempts = [
-            'diplomas/Cert_1.png',
-            'Diplomas/Cert_1.png',
-            'diplomas/cert_1.png',
-            'Diplomas/cert_1.png',
-            'Certificados/Cert_1.png',
-            'diploma/Cert_1.png',
-            'diplomas/Cert_1.jpg'
-        ];
+    // --- GESTIÓN DE DISEÑOS DE DIPLOMAS ---
+    // Agrega aquí los nombres de los archivos que subas a la carpeta /diplomas
+    const diplomaFiles = ['Cert_1.png', 'Cert_2.png', 'Cert_3.png', 'Cert_4.png', 'Cert_5.png'];
+
+    function renderDesignPicker() {
+        const container = document.getElementById('design-picker-container');
+        const currentValue = document.getElementById('cert-design').value;
+        const isDisabled = document.getElementById('cert-design').disabled;
         
-        const currentIdx = attempts.findIndex(path => img.src.endsWith(path));
-        if (currentIdx !== -1 && currentIdx < attempts.length - 1) {
-            console.warn(`[404] No hallado en: ${attempts[currentIdx]}. Probando variante: ${attempts[currentIdx + 1]}`);
-            img.src = attempts[currentIdx + 1];
-        } else {
-            img.onerror = null;
-            img.src = 'https://placehold.co/1000x700?text=Error:+Archivo+No+Encontrado+en+GitHub';
-            console.error("FATAL: No se encontró Cert_1.png en ninguna ruta. Revisa que el archivo esté en la carpeta 'diplomas' en GitHub con la C mayúscula.");
-        }
+        container.innerHTML = diplomaFiles.map(file => `
+            <div class="design-item ${currentValue === file ? 'active' : ''} ${isDisabled ? 'disabled' : ''}" 
+                 onclick="selectDesign('${file}')" title="${file}">
+                <img src="diplomas/${file}" 
+                     onerror="this.src='https://placehold.co/150x100?text=${file.split('.')[0]}'" 
+                     alt="${file}">
+            </div>
+        `).join('');
     }
 
+    function selectDesign(file) {
+        if (document.getElementById('cert-design').disabled) return;
+        document.getElementById('cert-design').value = file;
+        renderDesignPicker();
+        updatePreview();
+    }
+
+    // Función robusta para manejar fallos de carga de imagen por case-sensitivity y variaciones
+    function handleImageError(img) {
+        const originalFilename = img.dataset.originalFilename; // Obtener el nombre de archivo original del atributo data
+        if (!originalFilename) {
+            console.error("handleImageError: data-original-filename no encontrado en la imagen.");
+            img.onerror = null; // Prevenir bucle infinito
+            img.src = 'https://placehold.co/1000x700?text=Error:+Archivo+No+Encontrado';
+            return;
+        }
+
+        const filenameParts = originalFilename.split('.');
+        const baseFilename = filenameParts[0]; // Ej: Cert_1
+        const ext = filenameParts[1] || 'png'; // Por defecto png si no hay extensión
+
+        const attempts = [
+            `diplomas/${baseFilename}.${ext}`,
+            `Diplomas/${baseFilename}.${ext}`,
+            `diplomas/${baseFilename.toLowerCase()}.${ext}`,
+            `Diplomas/${baseFilename.toLowerCase()}.${ext}`,
+            `diplomas/${baseFilename}.jpg`,
+            `Diplomas/${baseFilename}.jpg`,
+            `diplomas/${baseFilename.toLowerCase()}.jpg`,
+            `Diplomas/${baseFilename.toLowerCase()}.jpg`
+        ];
+
+        // Filtrar intentos duplicados y el src actual para evitar reintentos redundantes
+        const uniqueAttempts = [...new Set(attempts)];
+        let currentAttemptIndex = img._attemptIndex || 0;
+
+        if (currentAttemptIndex < uniqueAttempts.length) {
+            img._attemptIndex = currentAttemptIndex + 1;
+            img.src = uniqueAttempts[currentAttemptIndex];
+            console.warn(`[404] No hallado en: ${img.src}. Probando variante: ${uniqueAttempts[currentAttemptIndex]}`);
+        } else {
+            img.onerror = null; // Prevenir bucle infinito
+            img.src = 'https://placehold.co/1000x700?text=Error:+Archivo+No+Encontrado';
+            console.error(`FATAL: No se encontró el archivo de diploma '${originalFilename}' en ninguna ruta o variación.`);
+        }
+    }
     function openTab(evt, tabName) {
       // Desactivar todos los paneles de forma segura
       const panes = document.querySelectorAll('.tab-pane');
@@ -299,6 +377,7 @@
             sigCoord: signatureCoord,
             sigInst: signatureInst,
             font: document.getElementById('cert-font').value,
+            diplomaDesign: document.getElementById('cert-design').value, // NUEVO: Guardar el diseño de diploma seleccionado
             fontSizeUser: document.getElementById('font-user').value,
             fontSizeOther: document.getElementById('font-other').value,
             topName: document.getElementById('top-name').value,
@@ -357,6 +436,7 @@
                 signatureInst = config.sigInst || null;
 
                 document.getElementById('cert-font').value = config.font || 'Times New Roman';
+                if(config.diplomaDesign) document.getElementById('cert-design').value = config.diplomaDesign; // NUEVO: Cargar el diseño de diploma seleccionado
                 document.getElementById('font-user').value = config.fontSizeUser || 40;
                 document.getElementById('font-other').value = config.fontSizeOther || 20;
                 document.getElementById('top-name').value = config.topName || 45;
@@ -377,6 +457,7 @@
                 if(config.wSigC) document.getElementById('w-sig-c').value = config.wSigC;
                 if(config.wSigI) document.getElementById('w-sig-i').value = config.wSigI;
             }
+            renderDesignPicker(); // Dibujar el selector al cargar
 
             // Auto-llenar datos del usuario actual si no hay config o es un certificado nuevo
             if (currentUser && currentUser.name && !document.getElementById('cert-user').value) {
@@ -399,6 +480,9 @@
                 const saveBtn = form.querySelector('button[onclick="saveCertConfig()"]');
                 if (saveBtn) {
                     saveBtn.disabled = true;
+                    // También deshabilitar el selector de diseño de diploma
+                    document.getElementById('cert-design').disabled = true;
+                    renderDesignPicker(); // Actualizar visualmente a estado deshabilitado
                     saveBtn.style.opacity = "0.5";
                 }
                 document.querySelectorAll('.tab-btn:not([onclick*="tab-datos"])').forEach(btn => btn.style.display = 'none');
@@ -417,6 +501,7 @@
         const inst = document.getElementById('cert-inst').value || "INSTRUCTOR";
         const date = document.getElementById('cert-date').value || "FECHA";
         const font = document.getElementById('cert-font').value;
+        const diplomaDesign = document.getElementById('cert-design').value; // NUEVO: Obtener el diseño de diploma seleccionado
         const sizeUser = document.getElementById('font-user').value;
         const sizeOther = document.getElementById('font-other').value;
 
@@ -448,6 +533,16 @@
         
         const elSigC = document.getElementById('prev-sig-c');
         const elSigI = document.getElementById('prev-sig-i');
+
+        // NUEVO: Actualizar la fuente de la imagen de fondo y reiniciar el índice de intentos para el manejo de errores
+        const bgImage = document.getElementById('bg-image');
+        const newSrc = `diplomas/${diplomaDesign}`;
+        
+        if (!bgImage.src.includes(newSrc)) {
+            bgImage.src = newSrc;
+            bgImage.dataset.originalFilename = diplomaDesign;
+            bgImage._attemptIndex = 0; // Reiniciar el índice de intentos solo si el diseño cambió
+        }
 
         elName.innerText = user.toUpperCase();
         elCourse.innerText = course;
