@@ -41,12 +41,7 @@
         <section class="content-card">
             <div id="especialidades" class="view-section active">
                 <div id="specialties-view">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2>Especialidades Disponibles</h2>
-                        <button class="btn btn--secondary btn--small" onclick="clearSharedScreen()">
-                            <i class="fas fa-broom"></i> Limpiar Pantalla
-                        </button>
-                    </div>
+                    <h2 style="margin-bottom: 1rem;">Especialidades Disponibles</h2>
                     <p style="margin-bottom: 2rem;">Seleccione una especialidad para comenzar su evaluación.</p>
                     <div id="specialties-list" class="exams-grid"></div>
                 </div>
@@ -156,7 +151,7 @@
                 navItems.forEach(i => i.classList.remove('active'));
                 sections.forEach(s => s.classList.remove('active'));
                 item.classList.add('active');
-                if(targetId === 'especialidades') renderSpecialties();
+                if(targetId === 'especialidades') await renderSpecialties();
                 if(targetId === 'historial') await renderHistorial();
                 if(targetId === 'Usuarios') await renderUsers();
                 document.getElementById(targetId).classList.add('active');
@@ -205,6 +200,7 @@
                         <button class="btn-action btn-danger btn-small" onclick="deleteExam(${index})"><i class="fas fa-trash"></i></button>
                         <button class="btn-action ${exam.active ? 'btn-success' : 'btn-secondary'} btn-small" onclick="toggleExamStatus(${index})"><i class="fas fa-power-off"></i></button>
                         <button class="btn-action btn--primary btn-small" onclick="shareToScreen(${index})" title="Compartir a Pantalla"><i class="fas fa-desktop"></i></button>
+                        <button class="btn-action btn-warning btn-small" onclick="resetExamResults(${index})" title="Reiniciar Intentos (Todos los usuarios)"><i class="fas fa-redo"></i></button>
                     </div>`;
                 list.appendChild(card);
             });
@@ -212,16 +208,23 @@
     }
         let editingIndex = null;
         let currentPlayingIndex = null;
-        function renderSpecialties() {
+        async function renderSpecialties() {
             const list = document.getElementById('specialties-list');
             const activeExams = savedExams.filter(e => e.active);
             list.innerHTML = '';
-            userAttempts = JSON.parse(localStorage.getItem('z2_user_attempts')) || {};
+            
+            // Consultar resultados previos del usuario en Supabase para ver si ya lo completó
+            const { data: results } = await _supabase
+                .from('exam_results')
+                .select('exam_id')
+                .eq('user_id', currentUser.id);
+            
+            const completedIds = new Set(results ? results.map(r => r.exam_id.toString()) : []);
+
             activeExams.forEach((exam) => {
                 const originalIndex = savedExams.indexOf(exam);
-                const examId = exam.id || `exam_${originalIndex}`;
-                // Inhabilitar si ya tiene un registro de intento (independientemente de si terminó o se agotó el tiempo)
-                const isCompleted = userAttempts[examId] > 0;
+                const examId = exam.id.toString();
+                const isCompleted = completedIds.has(examId);
                 
                 const card = document.createElement('div');
                 card.className = 'exam-card';
@@ -236,7 +239,7 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button class="btn ${isCompleted ? 'btn--secondary' : 'btn--primary'} btn--small" style="flex: 1;" onclick="${isCompleted ? '' : `startExam(${originalIndex})`}" ${isCompleted ? 'disabled' : ''}>${isCompleted ? 'Examen Finalizado' : 'Tomar Examen'}</button>
+                        <button class="btn ${isCompleted ? 'btn--secondary' : 'btn--primary'} btn--small" style="flex: 1;" onclick="${isCompleted ? '' : `startExam(${originalIndex})`}" ${isCompleted ? 'disabled' : ''}>${isCompleted ? 'Completado' : 'Tomar Examen'}</button>
                         <button class="btn btn--secondary btn--small" onclick="shareToScreen(${originalIndex})" title="Compartir a Pantalla"><i class="fas fa-desktop"></i></button>
                     </div>`;
                 list.appendChild(card);
@@ -266,33 +269,6 @@
                     <h1>${exam.name}</h1>
                     <p>Evaluación de Especialidad Médica</p>
                     <div class="badge"><i class="fas fa-clock"></i> ${exam.time_limit || 30} MINUTOS</div>
-                </body>
-                </html>
-            `);
-            sharedWindow.document.close();
-            sharedWindow.focus();
-        }
-
-        function clearSharedScreen() {
-            sharedWindow = window.open('', 'Z2Presentation', 'width=1000,height=700');
-            sharedWindow.document.open();
-            sharedWindow.document.write(`
-                <html>
-                <head>
-                    <title>Portal Z2 - Esperando</title>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-                    <style>
-                        body { margin: 0; padding: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; text-align: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-                        .icon { font-size: 6rem; color: #3b82f6; margin-bottom: 2rem; animation: pulse 2s infinite; }
-                        h1 { font-size: 4rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
-                        p { font-size: 1.5rem; color: #94a3b8; margin-top: 1rem; }
-                        @keyframes pulse { 0% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.6; transform: scale(1); } }
-                    </style>
-                </head>
-                <body>
-                    <div class="icon"><i class="fas fa-hands-praying"></i></div>
-                    <h1>Esperando pedidos de oración</h1>
-                    <p>Portal Z2 - ADN LEYENDA</p>
                 </body>
                 </html>
             `);
@@ -422,15 +398,9 @@
             });
             const finalScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
             
-// Actualizar intentos locales y guardar resultado
-            const examId = exam.id || `exam_${currentPlayingIndex}`;
-            userAttempts[examId] = (userAttempts[examId] || 0) + 1;
-            localStorage.setItem('z2_user_attempts', JSON.stringify(userAttempts));
-            
-            // Guardar resultado en Supabase
             const { error } = await _supabase.from('exam_results').insert([{
                 user_id: currentUser.id,
-                exam_id: examId,
+                exam_id: exam.id,
                 score: finalScore,
                 date: new Date().toISOString()
             }]);
@@ -438,7 +408,7 @@
             if (error) console.error('Error al guardar resultado:', error);
 
             alert(`Resultado: ${finalScore}/100 puntos (${correctAnswers} aciertos de ${totalQuestions} preguntas).`);
-            renderSpecialties();
+            await renderSpecialties();
             closeExamPlayer();
         }
         function closeExamPlayer() {
@@ -621,19 +591,6 @@
             }
         };
 
-        window.toggleUserRole = async function(id, currentRole) {
-            const newRole = currentRole === 'admin' ? 'user' : 'admin';
-            if (confirm(`¿Estás seguro de que deseas cambiar el rol de este usuario a ${newRole === 'admin' ? 'Administrador' : 'Usuario'}?`)) {
-                const { error } = await _supabase.from('users').update({ role: newRole }).eq('id', id);
-                if (error) {
-                    alert('Error al actualizar el rol: ' + error.message);
-                } else {
-                    await renderUsers();
-                    alert('Rol actualizado correctamente.');
-                }
-            }
-        };
-
         window.toggleBlockUser = async function(id) {
             const { data: user, error: fetchError } = await _supabase.from('users').select('blocked').eq('id', id).single();
             if (fetchError) return alert('Error al obtener usuario: ' + fetchError.message);
@@ -650,7 +607,24 @@
                 const examId = savedExams[index].id;
                 await _supabase.from('exams').delete().eq('id', examId);
                 await renderExams();
-                renderSpecialties();
+                await renderSpecialties();
+            }
+        };
+
+        window.resetExamResults = async function(index) {
+            const exam = savedExams[index];
+            if (confirm(`¿Estás seguro de que deseas reiniciar todos los resultados del examen "${exam.name}"? Esto permitirá que TODOS los usuarios puedan tomarlo de nuevo como si fuera la primera vez.`)) {
+                const { error } = await _supabase
+                    .from('exam_results')
+                    .delete()
+                    .eq('exam_id', exam.id);
+                
+                if (error) {
+                    alert('Error al reiniciar resultados: ' + error.message);
+                } else {
+                    alert('Resultados reiniciados correctamente para todos los usuarios.');
+                    await renderSpecialties();
+                }
             }
         };
 
@@ -680,7 +654,7 @@
             const exam = savedExams[index];
             await _supabase.from('exams').update({ active: !exam.active }).eq('id', exam.id);
             await renderExams();
-            renderSpecialties();
+            await renderSpecialties();
         };
 
         function resetForm() {
@@ -733,7 +707,7 @@
                 } else {
                     alert("Examen guardado exitosamente");
                     await renderExams();
-                    renderSpecialties(); 
+                    await renderSpecialties(); 
                     resetForm();
                 }
             };
@@ -748,7 +722,7 @@
         async function init() {
             addQuestion();
             await renderExams();
-            renderSpecialties();
+            await renderSpecialties();
         }
         init();
 
